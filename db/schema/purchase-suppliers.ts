@@ -5,7 +5,10 @@ import { relations } from 'drizzle-orm';
 
 export const purchaseSuppliersTable = table('purchase_suppliers', {
     id: t.uuid().defaultRandom().primaryKey(),
-    invoiceId: t.uuid().references(() => purchaseInvoicesTable.id).notNull(),
+    invoiceId: t
+        .uuid()
+        .references(() => purchaseInvoicesTable.id, { onDelete: 'cascade' })
+        .notNull(),
     name: t.varchar().notNull(),
     phone: t.varchar(),
     address: t.varchar(),

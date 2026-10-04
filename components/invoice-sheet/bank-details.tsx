@@ -1,13 +1,24 @@
-import { BANK_DETAILS } from './constants';
+export interface BankDetailsData {
+    name?: string | null;
+    branch?: string | null;
+    ifscCode?: string | null;
+    accountNumber?: string | number | null;
+}
 
-export function BankDetails() {
+export function BankDetails({ details }: { details?: BankDetailsData | null }) {
+    if (!details || (!details.name && !details.accountNumber)) {
+        return null;
+    }
+
     return (
         <div className="bg-amber-100 font-semibold p-4 rounded-sm">
             <section className="flex flex-col gap-1 text-xs">
-                <p>Bank Name: {BANK_DETAILS.name}</p>
-                <p>Branch: {BANK_DETAILS.branch}</p>
-                <p>IFSC Code: {BANK_DETAILS.ifscCode}</p>
-                <p>Account Number: {BANK_DETAILS.accountNumber}</p>
+                {details.name && <p>Bank Name: {details.name}</p>}
+                {details.branch && <p>Branch: {details.branch}</p>}
+                {details.ifscCode && <p>IFSC Code: {details.ifscCode}</p>}
+                {details.accountNumber && (
+                    <p>Account Number: {details.accountNumber}</p>
+                )}
             </section>
         </div>
     );

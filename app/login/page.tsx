@@ -1,160 +1,104 @@
-'use client';
-
-import { useActionState, useState } from 'react';
-import { login, type LoginState } from '@/app/actions/auth';
-import { Field, FieldLabel } from '@/components/ui/field';
-import {
-    InputGroup,
-    InputGroupInput,
-    InputGroupAddon,
-} from '@/components/ui/input-group';
-import {
-    ArrowRightIcon,
-    EyeIcon,
-    EyeOffIcon,
-    Loader2Icon,
-    LockKeyholeIcon,
-    UserIcon,
-} from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/session';
 import { playfair } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { LoginForm } from './login-form';
+import { Gem } from 'lucide-react';
 
-export default function LoginPage() {
+export default async function LoginPage() {
+    const session = await getSession();
+    if (session) {
+        redirect('/dashboard');
+    }
+
     return (
-        <div className="grid place-content-center h-full bg-gray-100">
-            <Card className="p-16 rounded-sm">
-                <CardHeader className="text-center">
-                    <p
+        <div className="h-screen w-full grid lg:grid-cols-2 bg-background overflow-hidden">
+            {/* Left Side: Minimalist Information about Invoice Maker */}
+            <div className="relative hidden lg:flex flex-col justify-between p-12 xl:p-16 bg-zinc-950 text-zinc-100 overflow-hidden border-r border-zinc-800/70 select-none">
+                {/* Subtle ambient light */}
+                <div className="pointer-events-none absolute -top-28 -left-28 size-96 rounded-full bg-amber-500/10 blur-[100px]" />
+                <div className="pointer-events-none absolute -bottom-28 -right-28 size-96 rounded-full bg-amber-600/5 blur-[100px]" />
+
+                {/* Brand Header */}
+                <div className="relative z-10 flex items-center gap-2.5">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                        <Gem className="size-4" />
+                    </div>
+                    <span
                         className={cn(
                             playfair.className,
-                            'text-3xl tracking-tight font-semibold'
+                            'text-xl font-bold tracking-tight text-white'
                         )}
                     >
-                        Krishna Jewellers
-                    </p>
-                    <p className="tracking-widest uppercase text-xs mt-2">
-                        Admin Portal
-                    </p>
-                </CardHeader>
-                <CardContent>
-                    <LoginForm />
-                </CardContent>
-                <CardFooter>
-                    <p className="text-center w-full tracking-wider text-xs">
-                        Authorized personnel only
-                    </p>
-                </CardFooter>
-            </Card>
-        </div>
-    );
-}
-
-function LoginForm() {
-    const [state, action, isPending] = useActionState<LoginState, FormData>(
-        login,
-        undefined
-    );
-
-    return (
-        <form action={action} className="space-y-6">
-            <Field className="gap-2">
-                <FieldLabel
-                    htmlFor="username"
-                    className="text-xs font-semibold tracking-widest uppercase text-gray-500"
-                >
-                    <UserIcon className="size-4 text-gray-500" />
-                    Username
-                </FieldLabel>
-                <InputGroup>
-                    <InputGroupInput
-                        id="username"
-                        name="username"
-                        placeholder="Enter username"
-                        required
-                        className="placeholder:text-gray-600"
-                    />
-                </InputGroup>
-            </Field>
-
-            <PasswordField />
-
-            {/* Error message */}
-            {state?.error && (
-                <div className="flex items-center gap-2 rounded-md border border-red-500/20 bg-red-500/5 px-4 py-2.5">
-                    <div className="size-1.5 rounded-full bg-red-500" />
-                    <p className="text-sm text-red-600">{state.error}</p>
+                        Invoice Maker
+                    </span>
                 </div>
-            )}
 
-            {/* Submit */}
-            <Button
-                type="submit"
-                disabled={isPending}
-                className={cn(
-                    'group rounded-md flex w-full py-6 text-sm font-semibold tracking-wide uppercase transition-all',
-                    'disabled:opacity-50 disabled:cursor-not-allowed'
-                )}
-            >
-                {isPending ? (
-                    <>
-                        <Loader2Icon className="animate-spin size-4" />
-                        Signing in...
-                    </>
-                ) : (
-                    <>
-                        Sign In
-                        <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
-                    </>
-                )}
-            </Button>
-        </form>
-    );
-}
-
-function PasswordField() {
-    const [isRevealed, setIsRevealed] = useState(false);
-
-    return (
-        <Field className="gap-2">
-            <FieldLabel
-                htmlFor="password"
-                className="text-xs font-semibold tracking-widest uppercase text-gray-500"
-            >
-                <LockKeyholeIcon className="size-4 text-gray-500" />
-                Password
-            </FieldLabel>
-            <InputGroup>
-                <InputGroupInput
-                    type={isRevealed ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    placeholder="••••••••"
-                    className="text-sm placeholder:text-600"
-                />
-                <InputGroupAddon align="inline-end">
-                    <button
-                        type="button"
-                        onClick={() => setIsRevealed(!isRevealed)}
-                        className="text-gray-500 cursor-pointer"
-                        aria-label={
-                            isRevealed ? 'Hide password' : 'Show password'
-                        }
-                    >
-                        {isRevealed ? (
-                            <EyeOffIcon className="size-4" />
-                        ) : (
-                            <EyeIcon className="size-4" />
+                {/* Central Minimal Statement */}
+                <div className="relative z-10 space-y-4 max-w-md">
+                    <h1
+                        className={cn(
+                            playfair.className,
+                            'text-3xl xl:text-4xl font-medium tracking-tight text-white leading-snug'
                         )}
-                    </button>
-                </InputGroupAddon>
-            </InputGroup>
-        </Field>
+                    >
+                        Invoicing & inventory, crafted for fine jewellery.
+                    </h1>
+                    <p className="text-sm text-zinc-400 leading-relaxed font-light">
+                        Fast counter billing, live weight tracking, and GST-compliant invoices
+                        built specifically for jewellery retail showrooms.
+                    </p>
+                </div>
+
+                {/* Bottom Minimal Footer */}
+                <div className="relative z-10 text-xs text-zinc-500">
+                    <span>Jewellery Shop Portal</span>
+                </div>
+            </div>
+
+            {/* Right Side: Login Form */}
+            <div className="flex flex-col justify-between h-full p-6 sm:p-10 lg:p-14 overflow-hidden">
+                {/* Mobile Header (visible only on small screens) */}
+                <div className="lg:hidden flex items-center justify-center gap-2 pt-2">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                        <Gem className="size-4" />
+                    </div>
+                    <span
+                        className={cn(
+                            playfair.className,
+                            'text-xl font-bold tracking-tight text-foreground'
+                        )}
+                    >
+                        Invoice Maker
+                    </span>
+                </div>
+
+                {/* Centered Form */}
+                <div className="my-auto w-full max-w-sm mx-auto space-y-6">
+                    <div className="space-y-1.5 text-center sm:text-left">
+                        <h2
+                            className={cn(
+                                playfair.className,
+                                'text-2xl sm:text-3xl font-bold tracking-tight text-foreground'
+                            )}
+                        >
+                            Sign In
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                            Enter your shop credentials to continue.
+                        </p>
+                    </div>
+
+                    <div className="rounded-xl border border-border/70 bg-card p-6 shadow-xs">
+                        <LoginForm />
+                    </div>
+                </div>
+
+                {/* Bottom Footer Note */}
+                <div className="text-center text-xs text-muted-foreground">
+                    <span>Authorized personnel only</span>
+                </div>
+            </div>
+        </div>
     );
 }

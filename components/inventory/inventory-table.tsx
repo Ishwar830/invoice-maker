@@ -1,4 +1,5 @@
 import { getInventoryItems, getCategories } from '@/db/queries/inventory';
+import { requireSession } from '@/lib/session';
 import { InventoryTableClient } from './inventory-table-client';
 import { Card, CardContent } from '@/components/ui/card';
 import { PackageIcon } from 'lucide-react';
@@ -14,9 +15,10 @@ export async function InventoryTable({ categoryId, page = 1 }: InventoryTablePro
     let errorMessage: string | null = null;
 
     try {
+        const { shopId } = await requireSession();
         [items, categories] = await Promise.all([
-            getInventoryItems(categoryId, page),
-            getCategories(),
+            getInventoryItems(shopId, categoryId, page),
+            getCategories(shopId),
         ]);
     } catch {
         errorMessage = 'Could not load inventory items.';

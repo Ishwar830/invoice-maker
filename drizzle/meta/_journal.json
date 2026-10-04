@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791054964114,
+      "tag": "0000_special_talkback",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791056634259,
+      "tag": "0001_sleepy_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791059069604,
+      "tag": "0002_famous_darkhawk",
+      "breakpoints": true
+    }
+  ]
+}

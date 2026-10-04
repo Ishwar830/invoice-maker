@@ -1,11 +1,15 @@
 import { db } from './index';
 import {
+    shopsTable,
+    sessionsTable,
+    inventoryCategoriesTable,
+    inventoryItemsTable,
+    salesInvoicesTable,
     salesCustomersTable,
     salesInvoiceItemsTable,
-    salesInvoicesTable,
     purchaseInvoicesTable,
-    purchaseInvoiceItemsTable,
     purchaseSuppliersTable,
+    purchaseInvoiceItemsTable,
 } from './schema';
 import {
     calculateInvoiceTotals,
@@ -13,397 +17,255 @@ import {
     calculateItemBasePrice,
 } from '../lib/calculations';
 import { getFinancialYearPrefix } from './queries/utils';
-
-const customersPool = [
-    {
-        name: 'Rajesh Sharma',
-        phone: '9876543210',
-        address: '12, MG Road, Mumbai',
-        gstNumber: '27AAAAA1111A1Z1',
-    },
-    {
-        name: 'Priya Patel',
-        phone: '9823456789',
-        address: '45, SG Highway, Ahmedabad',
-        gstNumber: '',
-    },
-    {
-        name: 'Amit Verma',
-        phone: '9812345678',
-        address: '78, Ring Road, Delhi',
-        gstNumber: '07BBBBB2222B2Z2',
-    },
-    {
-        name: 'Sunita Gupta',
-        phone: '9988776655',
-        address: '101, Park Street, Kolkata',
-        gstNumber: '',
-    },
-    {
-        name: 'Vikram Singh',
-        phone: '9765432109',
-        address: '22, M.I. Road, Jaipur',
-        gstNumber: '08CCCCC3333C3Z3',
-    },
-    {
-        name: 'Anjali Joshi',
-        phone: '9654321098',
-        address: '55, FC Road, Pune',
-        gstNumber: '',
-    },
-    {
-        name: 'Sanjay Mehta',
-        phone: '9543210987',
-        address: '88, CG Road, Ahmedabad',
-        gstNumber: '24DDDDD4444D4Z4',
-    },
-    {
-        name: 'Deepika Rao',
-        phone: '9432109876',
-        address: '14, Residency Road, Bangalore',
-        gstNumber: '',
-    },
-    {
-        name: 'Sandeep Reddy',
-        phone: '9321098765',
-        address: '67, Jubilee Hills, Hyderabad',
-        gstNumber: '36EEEEE5555E5Z5',
-    },
-    {
-        name: 'Neha Kapoor',
-        phone: '9210987654',
-        address: '30, Linking Road, Mumbai',
-        gstNumber: '',
-    },
-    {
-        name: 'Arun Kumar',
-        phone: '9109876543',
-        address: '11, Mount Road, Chennai',
-        gstNumber: '',
-    },
-    {
-        name: 'Kiran Deshmukh',
-        phone: '9098765432',
-        address: '40, Shivaji Nagar, Pune',
-        gstNumber: '27FFFFF6666F6Z6',
-    },
-    {
-        name: 'Manish Pandey',
-        phone: '8987654321',
-        address: '5, Hazratganj, Lucknow',
-        gstNumber: '',
-    },
-    {
-        name: 'Pooja Choudhary',
-        phone: '8876543210',
-        address: '16, Tonk Road, Jaipur',
-        gstNumber: '',
-    },
-    {
-        name: 'Rohan Shah',
-        phone: '8765432109',
-        address: '3, Ghod Dod Road, Surat',
-        gstNumber: '24GGGGG7777G7Z7',
-    },
-];
-
-const itemsPool = [
-    {
-        description: 'Gold Ring',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 6,
-    },
-    {
-        description: 'Gold Chain',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 15,
-    },
-    {
-        description: 'Gold Bangle',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 22,
-    },
-    {
-        description: 'Gold Necklace',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 45,
-    },
-    {
-        description: 'Gold Earrings',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 8,
-    },
-    {
-        description: 'Gold Bracelet',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 18,
-    },
-    {
-        description: 'Gold Kada',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 28,
-    },
-    {
-        description: 'Gold Mangalsutra',
-        metalType: 'Gold',
-        metalPurity: '22K',
-        baseRate: 7200,
-        baseWeight: 20,
-    },
-    {
-        description: 'Diamond Ring',
-        metalType: 'Gold',
-        metalPurity: '18K',
-        baseRate: 7200,
-        baseWeight: 4,
-    },
-    {
-        description: 'Diamond Nose Pin',
-        metalType: 'Gold',
-        metalPurity: '18K',
-        baseRate: 7200,
-        baseWeight: 1.5,
-    },
-    {
-        description: 'Silver Anklet',
-        metalType: 'Silver',
-        metalPurity: '92.5 Sterling',
-        baseRate: 85,
-        baseWeight: 35,
-    },
-    {
-        description: 'Silver Chain',
-        metalType: 'Silver',
-        metalPurity: '92.5 Sterling',
-        baseRate: 85,
-        baseWeight: 20,
-    },
-    {
-        description: 'Silver Bracelet',
-        metalType: 'Silver',
-        metalPurity: '92.5 Sterling',
-        baseRate: 85,
-        baseWeight: 15,
-    },
-    {
-        description: 'Platinum Ring',
-        metalType: 'Platinum',
-        metalPurity: '950 Platinum',
-        baseRate: 3200,
-        baseWeight: 8,
-    },
-];
-
-const notesPool = [
-    'Thank you for shopping with Krishna Jewellers!',
-    'Goods once sold will not be taken back.',
-    'Certified gold jewellery.',
-    'Special discount applied.',
-    'Making charges promotional offer.',
-    '',
-];
+import bcrypt from 'bcrypt';
 
 async function seed() {
-    console.log('🌱 Starting database seeding...');
+    console.log('🌱 Starting database wipe and seed...');
 
     try {
-        // 1. Clean existing data in correct dependency order
-        console.log('🧹 Clearing old data...');
-        await db.delete(purchaseInvoiceItemsTable);
-        await db.delete(purchaseSuppliersTable);
-        await db.delete(purchaseInvoicesTable);
+        // 1. Wipe all existing data in reverse FK order
+        console.log('🧹 Cleaning existing tables...');
+        await db.delete(sessionsTable);
         await db.delete(salesInvoiceItemsTable);
         await db.delete(salesCustomersTable);
         await db.delete(salesInvoicesTable);
-        console.log('✨ Database cleared.');
+        await db.delete(purchaseInvoiceItemsTable);
+        await db.delete(purchaseSuppliersTable);
+        await db.delete(purchaseInvoicesTable);
+        await db.delete(inventoryItemsTable);
+        await db.delete(inventoryCategoriesTable);
+        await db.delete(shopsTable);
 
-        // 2. Generate and Insert 50 Invoices
-        const count = 50;
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 180); // 180 days ago
+        // 2. Define shops to seed
+        const defaultPassword = 'Password123!';
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-        console.log(`🚀 Seeding ${count} sales invoices...`);
+        const shopsData = [
+            {
+                username: 'krishna',
+                password: hashedPassword,
+                name: 'Krishna Jewellers',
+                ownerName: 'Ramesh Suthar',
+                gstNumber: '24ABCDE1234F1Z5',
+                phone: '9876543210',
+                address: 'Station Road, Palanpur, Gujarat - 385001',
+                bankName: 'Kotak Mahindra Bank',
+                bankBranch: 'Ambernath East',
+                bankIfsc: 'KKBK0002040',
+                bankAccountNumber: '9833865787',
+            },
+            {
+                username: 'radha',
+                password: hashedPassword,
+                name: 'Radha Silver & Gold',
+                ownerName: 'Mohan Lal',
+                gstNumber: '24XYZAB5678C1D2',
+                phone: '9812345678',
+                address: 'MG Road, Ahmedabad, Gujarat - 380001',
+                bankName: 'State Bank of India',
+                bankBranch: 'Ashram Road, Ahmedabad',
+                bankIfsc: 'SBIN0001234',
+                bankAccountNumber: '38927401928',
+            },
+        ];
 
-        for (let i = 0; i < count; i++) {
-            const invoiceNumber = 1001 + i;
+        console.log('🏪 Inserting shops...');
+        const [shop1, shop2] = await db
+            .insert(shopsTable)
+            .values(shopsData)
+            .returning();
 
-            // Generate invoice date
-            const invoiceDate = new Date(startDate);
-            const daysToAdd =
-                Math.floor((180 / count) * i) + (Math.random() > 0.5 ? 1 : 0);
-            invoiceDate.setDate(startDate.getDate() + daysToAdd);
-            const createdAtString = invoiceDate.toISOString().split('T')[0];
+        const shops = [
+            {
+                shop: shop1,
+                categories: ['Gold Rings', 'Gold Chains', 'Diamond Necklaces'],
+                items: [
+                    { code: 'RNG-001', name: '22K Floral Gold Ring', catIndex: 0, metal: 'gold', purity: '22K', weight: 4.5, rate: 7200 },
+                    { code: 'RNG-002', name: '22K Solitaire Gold Ring', catIndex: 0, metal: 'gold', purity: '22K', weight: 3.8, rate: 7200 },
+                    { code: 'CHN-001', name: '22K Rope Gold Chain', catIndex: 1, metal: 'gold', purity: '22K', weight: 12.0, rate: 7200 },
+                    { code: 'NCK-001', name: '18K Diamond Choker Necklace', catIndex: 2, metal: 'gold', purity: '18K', weight: 25.5, rate: 6100 },
+                ],
+                customer: {
+                    name: 'Rajesh Sharma',
+                    phone: '9876543210',
+                    address: '12, MG Road, Mumbai',
+                    gstNumber: '27AAAAA1111A1Z1',
+                },
+                supplier: {
+                    name: 'Surat Bullion Mart',
+                    phone: '9871122334',
+                    address: 'Diamond Market, Surat',
+                    gstNumber: '24GGGGG5555G1Z9',
+                },
+            },
+            {
+                shop: shop2,
+                categories: ['Silver Bangles', 'Silver Coins', 'Silver Utensils'],
+                items: [
+                    { code: 'BNG-001', name: '925 Sterling Silver Kada', catIndex: 0, metal: 'silver', purity: '92.5%', weight: 45.0, rate: 85 },
+                    { code: 'BNG-002', name: 'Antique Carved Silver Bangle', catIndex: 0, metal: 'silver', purity: '92.5%', weight: 32.5, rate: 85 },
+                    { code: 'COI-001', name: 'Lakshmi Ganesh Silver Coin 10g', catIndex: 1, metal: 'silver', purity: '99.9%', weight: 10.0, rate: 90 },
+                    { code: 'UTN-001', name: 'Pure Silver Puja Thali', catIndex: 2, metal: 'silver', purity: '92.5%', weight: 150.0, rate: 85 },
+                ],
+                customer: {
+                    name: 'Priya Patel',
+                    phone: '9823456789',
+                    address: '45, SG Highway, Ahmedabad',
+                    gstNumber: '',
+                },
+                supplier: {
+                    name: 'Rajkot Silver Refineries',
+                    phone: '9822334455',
+                    address: 'Soni Bazar, Rajkot',
+                    gstNumber: '24HHHHH6666H1Z8',
+                },
+            },
+        ];
 
-            // Pick a customer
-            const customerSource =
-                customersPool[Math.floor(Math.random() * customersPool.length)];
+        for (const config of shops) {
+            console.log(`📦 Seeding data for shop: ${config.shop.name}...`);
 
-            interface SeedItem {
-                description: string;
-                metalType: string;
-                metalPurity: string;
-                metalRate: number;
-                grossWeight: number;
-                netWeight: number;
-                makingChargesPercent: number;
-                makingChargesAmount: number;
-                itemTotal: number;
-            }
-            // Select number of items (1 to 3)
-            const numItems = Math.floor(Math.random() * 3) + 1;
-            const items: SeedItem[] = [];
+            // Seed categories
+            const insertedCategories = await db
+                .insert(inventoryCategoriesTable)
+                .values(
+                    config.categories.map((name) => ({
+                        shopId: config.shop.id,
+                        name,
+                    }))
+                )
+                .returning();
 
-            for (let j = 0; j < numItems; j++) {
-                const itemTemplate =
-                    itemsPool[Math.floor(Math.random() * itemsPool.length)];
+            // Seed inventory items
+            const insertedItems = await db
+                .insert(inventoryItemsTable)
+                .values(
+                    config.items.map((it) => ({
+                        shopId: config.shop.id,
+                        itemCode: it.code,
+                        categoryId: insertedCategories[it.catIndex].id,
+                        metalType: it.metal,
+                        metalPurity: it.purity,
+                        grossWeight: it.weight,
+                        netWeight: it.weight,
+                        status: 'available',
+                    }))
+                )
+                .returning();
 
-                // Add random variation to weight and rate
-                const weightVariation =
-                    (Math.random() * 0.2 - 0.1) * itemTemplate.baseWeight; // +/- 10%
-                const grossWeight = Math.max(
-                    0.5,
-                    Math.round(
-                        (itemTemplate.baseWeight + weightVariation) * 100
-                    ) / 100
-                );
+            // Seed a Sales Invoice
+            const invoiceDateStr = '2026-10-01';
+            const fyPrefix = getFinancialYearPrefix(new Date(invoiceDateStr));
+            const soldItem = config.items[0];
 
-                // Net weight is gross weight minus small stone weight or zero
-                const stoneWeight =
-                    Math.random() > 0.6
-                        ? Math.round(Math.random() * 0.5 * 100) / 100
-                        : 0;
-                const netWeight = Math.max(
-                    0.5,
-                    Math.round((grossWeight - stoneWeight) * 100) / 100
-                );
+            const itemData = {
+                netWeight: soldItem.weight,
+                metalRate: soldItem.rate,
+                makingChargesPercent: 10,
+            };
+            const basePrice = calculateItemBasePrice(itemData);
+            const makingChargesAmount = Math.round(basePrice * 0.1 * 100) / 100;
+            const itemTotal = Math.round(calculateItemAmount(itemData) * 100) / 100;
 
-                const rateVariation = Math.round(
-                    (Math.random() * 0.04 - 0.02) * itemTemplate.baseRate
-                ); // +/- 2%
-                const metalRate = itemTemplate.baseRate + rateVariation;
-
-                const makingChargesPercent = Math.floor(Math.random() * 8) + 8; // 8% to 15%
-
-                const itemData = {
-                    netWeight,
-                    metalRate,
-                    makingChargesPercent,
-                };
-
-                const basePrice = calculateItemBasePrice(itemData);
-                const makingChargesAmount =
-                    Math.round(basePrice * (makingChargesPercent / 100) * 100) /
-                    100;
-                const itemTotal =
-                    Math.round(calculateItemAmount(itemData) * 100) / 100;
-
-                items.push({
-                    description: itemTemplate.description,
-                    metalType: itemTemplate.metalType,
-                    metalPurity: itemTemplate.metalPurity,
-                    metalRate,
-                    grossWeight,
-                    netWeight,
-                    makingChargesPercent,
-                    makingChargesAmount,
-                    itemTotal,
-                });
-            }
-
-            // Calculate Invoice Totals
-            const cgstPercent = 1.5;
-            const sgstPercent = 1.5;
-
-            // Temporary items payload matching calculations interface
-            const calculationItems = items.map((it) => ({
-                netWeight: it.netWeight,
-                metalRate: it.metalRate,
-                makingChargesPercent: it.makingChargesPercent,
-            }));
-
-            const { subTotal } = calculateInvoiceTotals({
-                items: calculationItems,
-                cgstPercent,
-                sgstPercent,
+            const totals = calculateInvoiceTotals({
+                items: [itemData],
+                cgstPercent: 1.5,
+                sgstPercent: 1.5,
                 discountAmount: 0,
             });
 
-            // Random discount
-            let discountAmount = 0;
-            if (subTotal > 50000 && Math.random() > 0.4) {
-                const discounts = [250, 500, 1000, 1500, 2000];
-                discountAmount =
-                    discounts[Math.floor(Math.random() * discounts.length)];
-            } else if (subTotal > 10000 && Math.random() > 0.5) {
-                discountAmount = 100;
-            }
-
-            const { cgstAmount, sgstAmount, grandTotal } =
-                calculateInvoiceTotals({
-                    items: calculationItems,
-                    cgstPercent,
-                    sgstPercent,
-                    discountAmount,
-                });
-
-            const notes =
-                notesPool[Math.floor(Math.random() * notesPool.length)];
-
-            // Insert using a transaction
-            const fyPrefix = getFinancialYearPrefix(new Date(createdAtString));
-
             await db.transaction(async (tx) => {
-                const [insertedInvoice] = await tx
+                const [salesInvoice] = await tx
                     .insert(salesInvoicesTable)
                     .values({
-                        invoiceNumber,
-                        cgstPercent,
-                        cgstAmount: Math.round(cgstAmount * 100) / 100,
-                        sgstPercent,
-                        sgstAmount: Math.round(sgstAmount * 100) / 100,
-                        subTotal: Math.round(subTotal * 100) / 100,
-                        grandTotal: Math.round(grandTotal * 100) / 100,
-                        discountAmount: Math.round(discountAmount * 100) / 100,
-                        notes: notes || null,
-                        createdAt: createdAtString,
+                        shopId: config.shop.id,
+                        invoiceNumber: 1,
+                        cgstPercent: 1.5,
+                        cgstAmount: Math.round(totals.cgstAmount * 100) / 100,
+                        sgstPercent: 1.5,
+                        sgstAmount: Math.round(totals.sgstAmount * 100) / 100,
+                        subTotal: Math.round(totals.subTotal * 100) / 100,
+                        grandTotal: Math.round(totals.grandTotal * 100) / 100,
+                        discountAmount: 0,
+                        notes: 'Thank you for your purchase!',
+                        createdAt: invoiceDateStr,
                         financialYear: fyPrefix,
                     })
-                    .returning({ id: salesInvoicesTable.id });
-
-                const invoiceId = insertedInvoice.id;
+                    .returning();
 
                 await tx.insert(salesCustomersTable).values({
-                    invoiceId,
-                    name: customerSource.name,
-                    phone: customerSource.phone || null,
-                    address: customerSource.address || null,
-                    gstNumber: customerSource.gstNumber || null,
+                    invoiceId: salesInvoice.id,
+                    name: config.customer.name,
+                    phone: config.customer.phone,
+                    address: config.customer.address,
+                    gstNumber: config.customer.gstNumber || null,
                 });
 
-                const itemsToInsert = items.map((item) => ({
-                    invoiceId,
-                    ...item,
-                }));
+                await tx.insert(salesInvoiceItemsTable).values({
+                    invoiceId: salesInvoice.id,
+                    description: soldItem.name,
+                    metalType: soldItem.metal,
+                    metalPurity: soldItem.purity,
+                    metalRate: soldItem.rate,
+                    grossWeight: soldItem.weight,
+                    netWeight: soldItem.weight,
+                    makingChargesPercent: 10,
+                    makingChargesAmount,
+                    itemTotal,
+                    inventoryItemId: insertedItems[0].id,
+                });
+            });
 
-                await tx.insert(salesInvoiceItemsTable).values(itemsToInsert);
+            // Seed a Purchase Invoice
+            await db.transaction(async (tx) => {
+                const purchaseSubTotal = 50000;
+                const [purchaseInvoice] = await tx
+                    .insert(purchaseInvoicesTable)
+                    .values({
+                        shopId: config.shop.id,
+                        invoiceNumber: 1,
+                        subTotal: purchaseSubTotal,
+                        grandTotal: purchaseSubTotal,
+                        notes: 'Raw material procurement',
+                        createdAt: invoiceDateStr,
+                        financialYear: fyPrefix,
+                    })
+                    .returning();
+
+                await tx.insert(purchaseSuppliersTable).values({
+                    invoiceId: purchaseInvoice.id,
+                    name: config.supplier.name,
+                    phone: config.supplier.phone,
+                    address: config.supplier.address,
+                    gstNumber: config.supplier.gstNumber,
+                });
+
+                await tx.insert(purchaseInvoiceItemsTable).values({
+                    invoiceId: purchaseInvoice.id,
+                    description: 'Raw bullion bars',
+                    metalType: config.items[0].metal,
+                    metalPurity: config.items[0].purity,
+                    metalRate: config.items[0].rate,
+                    grossWeight: 50,
+                    netWeight: 50,
+                    itemTotal: purchaseSubTotal,
+                });
             });
         }
 
-        console.log('✅ Database seeded successfully!');
+        console.log('\n======================================================');
+        console.log('✅ DATABASE SEEDED SUCCESSFULLY WITH 2 SHOPS');
+        console.log('======================================================');
+        console.log('\nShop 1:');
+        console.log(`  Name:     Krishna Jewellers`);
+        console.log(`  Username: krishna`);
+        console.log(`  Password: ${defaultPassword}`);
+        console.log('\nShop 2:');
+        console.log(`  Name:     Radha Silver & Gold`);
+        console.log(`  Username: radha`);
+        console.log(`  Password: ${defaultPassword}`);
+        console.log('======================================================\n');
+
         process.exit(0);
     } catch (error) {
         console.error('❌ Seeding failed:', error);

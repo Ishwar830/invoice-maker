@@ -7,7 +7,7 @@ export const salesCustomersTable = table('sales_customers', {
     id: t.uuid().defaultRandom().primaryKey(),
     invoiceId: t
         .uuid()
-        .references(() => salesInvoicesTable.id)
+        .references(() => salesInvoicesTable.id, { onDelete: 'cascade' })
         .notNull(),
     name: t.varchar().notNull(),
     phone: t.varchar(),

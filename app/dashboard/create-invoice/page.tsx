@@ -3,11 +3,13 @@ import { PurchaseInvoiceForm } from '@/components/create-invoice/variants/purcha
 import { InvoiceProvider } from '@/components/create-invoice/invoice-context';
 import { getNextSalesInvoiceNumber } from '@/db/queries/sales';
 import { getNextPurchaseInvoiceNumber } from '@/db/queries/purchase';
+import { getShopById } from '@/db/queries/shops';
+import { requireSession } from '@/lib/session';
 import type { InvoiceType, InvoiceFormData } from '@/lib/types';
 
 export const metadata = {
-    title: 'Create Invoice — Krishna Jewellers',
-    description: 'Create a new invoice for Krishna Jewellers',
+    title: 'Create Invoice',
+    description: 'Create a new sales or purchase invoice',
 };
 
 export default async function CreateInvoicePage({
@@ -15,12 +17,16 @@ export default async function CreateInvoicePage({
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    const params = await searchParams;
+    const { shopId } = await requireSession();
+    const [shop, params] = await Promise.all([
+        getShopById(shopId),
+        searchParams,
+    ]);
     const invoiceType: InvoiceType = params.type === 'purchase' ? 'purchase' : 'sales';
 
     const nextInvoiceNumber = invoiceType === 'sales'
-        ? await getNextSalesInvoiceNumber()
-        : await getNextPurchaseInvoiceNumber();
+        ? await getNextSalesInvoiceNumber(shopId)
+        : await getNextPurchaseInvoiceNumber(shopId);
 
     const initialData: InvoiceFormData = {
         invoiceNumber: nextInvoiceNumber,
@@ -43,7 +49,7 @@ export default async function CreateInvoicePage({
     };
 
     return (
-        <InvoiceProvider initialData={initialData}>
+        <InvoiceProvider initialData={initialData} shop={shop}>
             {invoiceType === 'sales' ? (
                 <SalesInvoiceForm />
             ) : (

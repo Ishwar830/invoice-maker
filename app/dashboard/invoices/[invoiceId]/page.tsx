@@ -2,6 +2,7 @@ import { getSalesInvoiceWithCustomerAndItems } from '@/db/queries/sales';
 import { getPurchaseInvoiceWithSupplierAndItems } from '@/db/queries/purchase';
 import { notFound } from 'next/navigation';
 import { InvoiceDetail } from './invoice-detail';
+import { getSession, requireSession } from '@/lib/session';
 import type { Metadata } from 'next';
 
 type Props = {
@@ -10,25 +11,28 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { invoiceId } = await params;
+    const session = await getSession();
+    if (!session) return { title: 'Invoice' };
 
-    let invoice: any = await getSalesInvoiceWithCustomerAndItems(invoiceId);
+    let invoice: any = await getSalesInvoiceWithCustomerAndItems(invoiceId, session.shopId);
     if (!invoice) {
-        invoice = await getPurchaseInvoiceWithSupplierAndItems(invoiceId);
+        invoice = await getPurchaseInvoiceWithSupplierAndItems(invoiceId, session.shopId);
     }
 
     return {
-        title: `Invoice#${invoice?.invoiceNumber ?? ""} — Krishna Jewellers`,
+        title: invoice ? `Invoice #${invoice.invoiceNumber} — ${session.shopName}` : 'Invoice',
     };
 }
 
 export default async function InvoiceDetailPage({ params }: Props) {
     const { invoiceId } = await params;
+    const { shopId } = await requireSession();
 
-    let invoice: any = await getSalesInvoiceWithCustomerAndItems(invoiceId);
+    let invoice: any = await getSalesInvoiceWithCustomerAndItems(invoiceId, shopId);
     let type: 'sales' | 'purchase' = 'sales';
 
     if (!invoice) {
-        invoice = await getPurchaseInvoiceWithSupplierAndItems(invoiceId);
+        invoice = await getPurchaseInvoiceWithSupplierAndItems(invoiceId, shopId);
         type = 'purchase';
     }
 
@@ -55,6 +59,7 @@ export default async function InvoiceDetailPage({ params }: Props) {
             metalPurity: item.metalPurity ?? undefined,
         })),
         notes: invoice.notes ?? undefined,
+        shop: invoice.shop ?? undefined,
     };
 
     return <InvoiceDetail invoice={formattedInvoice} type={type} />;

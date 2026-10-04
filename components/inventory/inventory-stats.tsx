@@ -1,9 +1,11 @@
 import { PackageIcon, TagIcon, LayoutGridIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getInventoryStats } from '@/db/queries/inventory';
+import { requireSession } from '@/lib/session';
 
 export async function InventoryStats() {
-    const stats = await getInventoryStats();
+    const { shopId } = await requireSession();
+    const stats = await getInventoryStats(shopId);
 
     return (
         <div className="grid gap-4 sm:grid-cols-3">

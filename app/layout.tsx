@@ -1,14 +1,16 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { Header } from '@/components/Header';
 import { inter } from '@/lib/fonts';
 import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
-    title: 'Krishna Jewellers — Gold and Silver Jewellery',
+    title: {
+        template: '%s — Invoice Maker',
+        default: 'Invoice Maker',
+    },
     description:
-        'Discover BIS hallmarked gold and silver jewellery at Krishna Jewellers.',
+        'Jewellery shop invoice and inventory management system.',
 };
 
 export default function RootLayout({
@@ -22,9 +24,8 @@ export default function RootLayout({
             className={cn('h-full', 'antialiased', inter.variable)}
             data-scroll-behaviour="smooth"
         >
-            <body className="min-h-full grid grid-rows-[auto_1fr]">
-                <Header />
-                <main>{children}</main>
+            <body className="min-h-full flex flex-col">
+                <main className="flex-1 flex flex-col">{children}</main>
                 <Toaster richColors position='top-center'/>
             </body>
         </html>

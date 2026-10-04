@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getRecentSalesInvoices } from '@/db/queries/sales';
+import { requireSession } from '@/lib/session';
 import { ReceiptTextIcon, CircleAlert } from 'lucide-react';
 import { InvoicesTableView } from './invoices-table-view';
 import {
@@ -17,7 +18,8 @@ export async function LatestInvoicesTable() {
     let errorMessage = null;
 
     try {
-        invoices = await getRecentSalesInvoices();
+        const { shopId } = await requireSession();
+        invoices = await getRecentSalesInvoices(shopId);
     } catch {
         errorMessage = 'Could not load latest invoices';
     }

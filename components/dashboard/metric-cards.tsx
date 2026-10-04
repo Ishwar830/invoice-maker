@@ -10,6 +10,7 @@ import {
     getFilteredSalesInvoicesCount,
     getRecentSalesInvoicesCount,
 } from '@/db/queries/sales';
+import { requireSession } from '@/lib/session';
 import {
     CircleAlert,
     FileTextIcon,
@@ -21,7 +22,8 @@ export async function TotalInvoicesCard() {
     let errorMessage = null;
 
     try {
-        totalInvoices = await getFilteredSalesInvoicesCount('');
+        const { shopId } = await requireSession();
+        totalInvoices = await getFilteredSalesInvoicesCount(shopId, '');
     } catch {
         errorMessage = 'Could not load total invoices';
     }
@@ -74,7 +76,8 @@ export async function RecentInvoicesCard() {
     let errorMessage = null;
 
     try {
-        recentInvoices = await getRecentSalesInvoicesCount(7);
+        const { shopId } = await requireSession();
+        recentInvoices = await getRecentSalesInvoicesCount(shopId, 7);
     } catch {
         errorMessage = 'Could not load recent invoices';
     }

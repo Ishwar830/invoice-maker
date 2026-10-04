@@ -64,8 +64,25 @@ export type InvoiceFormData = {
 export const INVOICE_TYPES = ['sales', 'purchase'] as const;
 export type InvoiceType = (typeof INVOICE_TYPES)[number];
 
-export type SalesInvoiceSheetData = SalesInvoicePayload;
-export type PurchaseInvoiceSheetData = PurchaseInvoicePayload;
+export type ShopProfile = {
+    id?: string;
+    name: string;
+    ownerName?: string | null;
+    gstNumber?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    bankName?: string | null;
+    bankBranch?: string | null;
+    bankIfsc?: string | null;
+    bankAccountNumber?: string | null;
+};
+
+export type SalesInvoiceSheetData = SalesInvoicePayload & {
+    shop?: ShopProfile | null;
+};
+export type PurchaseInvoiceSheetData = PurchaseInvoicePayload & {
+    shop?: ShopProfile | null;
+};
 
 export type InvoiceSheetItem = {
     description: string;

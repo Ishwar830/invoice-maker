@@ -11,7 +11,7 @@ const itemSchema = z.object({
     makingChargesAmount: z.coerce.number().min(0),
     itemTotal: z.coerce.number().min(0),
     /** ID of the linked inventory item (if this row was populated from inventory) */
-    inventoryItemId: z.string().uuid().optional(),
+    inventoryItemId: z.uuid().optional(),
 });
 
 const customerSchema = z.object({

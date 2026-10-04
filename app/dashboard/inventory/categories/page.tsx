@@ -1,15 +1,17 @@
 import { playfair } from '@/lib/fonts';
 import { getCategories } from '@/db/queries/inventory';
+import { requireSession } from '@/lib/session';
 import { CategoryTable } from '@/components/inventory/category-table';
 import { CategoriesPageClient } from './categories-page-client';
 
 export const metadata = {
-    title: 'Manage Categories — Krishna Jewellers',
+    title: 'Manage Categories',
     description: 'Add, edit, and remove jewellery inventory categories.',
 };
 
 export default async function CategoriesPage() {
-    const categories = await getCategories();
+    const { shopId } = await requireSession();
+    const categories = await getCategories(shopId);
 
     // Serialise Date to ISO string so it's passable to client components
     const serialised = categories.map((c) => ({

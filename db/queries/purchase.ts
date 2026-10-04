@@ -10,44 +10,57 @@ import { getFinancialYearPrefix } from './utils';
 
 const ITEMS_PER_PAGE = 10;
 
-export const getNextPurchaseInvoiceNumber = async () => {
+export const getNextPurchaseInvoiceNumber = async (shopId: string) => {
     const date = new Date();
     const fyPrefix = getFinancialYearPrefix(date);
 
     const result = await db
         .select({ maxNum: max(purchaseInvoicesTable.invoiceNumber) })
         .from(purchaseInvoicesTable)
-        .where(eq(purchaseInvoicesTable.financialYear, fyPrefix));
+        .where(
+            and(
+                eq(purchaseInvoicesTable.shopId, shopId),
+                eq(purchaseInvoicesTable.financialYear, fyPrefix)
+            )
+        );
 
     return (result[0]?.maxNum ?? 0) + 1;
 };
 
-export const getPurchaseInvoiceById = async (id: string) => {
+export const getPurchaseInvoiceById = async (id: string, shopId: string) => {
     const invoice = await db.query.purchaseInvoicesTable.findFirst({
-        where: eq(purchaseInvoicesTable.id, id),
+        where: and(
+            eq(purchaseInvoicesTable.id, id),
+            eq(purchaseInvoicesTable.shopId, shopId)
+        ),
     });
 
     return invoice;
 };
 
-export const getPurchaseInvoiceWithSupplierAndItems = async (id: string) => {
+export const getPurchaseInvoiceWithSupplierAndItems = async (id: string, shopId: string) => {
     const invoice = await db.query.purchaseInvoicesTable.findFirst({
-        where: eq(purchaseInvoicesTable.id, id),
+        where: and(
+            eq(purchaseInvoicesTable.id, id),
+            eq(purchaseInvoicesTable.shopId, shopId)
+        ),
         with: {
             supplier: true,
             items: true,
+            shop: true,
         },
     });
 
     return invoice;
 };
 
-export const savePurchaseInvoice = async (data: PurchaseInvoicePayload) => {
+export const savePurchaseInvoice = async (data: PurchaseInvoicePayload, shopId: string) => {
     const invoiceDate = data.createdAt;
     const fyPrefix = getFinancialYearPrefix(invoiceDate);
 
     const existingInvoice = await db.query.purchaseInvoicesTable.findFirst({
         where: and(
+            eq(purchaseInvoicesTable.shopId, shopId),
             eq(purchaseInvoicesTable.financialYear, fyPrefix),
             eq(purchaseInvoicesTable.invoiceNumber, data.invoiceNumber)
         ),
@@ -62,6 +75,7 @@ export const savePurchaseInvoice = async (data: PurchaseInvoicePayload) => {
             .insert(purchaseInvoicesTable)
             .values({
                 ...data,
+                shopId,
                 createdAt: data.createdAt.toISOString(),
                 financialYear: fyPrefix,
             })
@@ -85,8 +99,9 @@ export const savePurchaseInvoice = async (data: PurchaseInvoicePayload) => {
     });
 };
 
-export const getRecentPurchaseInvoices = async () => {
+export const getRecentPurchaseInvoices = async (shopId: string) => {
     const invoices = db.query.purchaseInvoicesTable.findMany({
+        where: eq(purchaseInvoicesTable.shopId, shopId),
         orderBy: (purchaseInvoicesTable, { desc }) => [desc(purchaseInvoicesTable.createdAt)],
         limit: 5,
         with: {
@@ -97,17 +112,20 @@ export const getRecentPurchaseInvoices = async () => {
     return invoices;
 };
 
-const buildPurchaseSearchCondition = (query: string) => {
+const buildPurchaseSearchCondition = (shopId: string, query: string) => {
+    const base = eq(purchaseInvoicesTable.shopId, shopId);
     const searchTerm = `%${query}%`;
-    return query
-        ? or(
-              sql`${purchaseInvoicesTable.invoiceNumber}::text ILIKE ${searchTerm}`,
-              ilike(purchaseSuppliersTable.name, searchTerm)
-          )
-        : undefined;
+    if (!query) return base;
+    return and(
+        base,
+        or(
+            sql`${purchaseInvoicesTable.invoiceNumber}::text ILIKE ${searchTerm}`,
+            ilike(purchaseSuppliersTable.name, searchTerm)
+        )
+    );
 };
 
-export const getFilteredPurchaseInvoicesCount = async (query: string) => {
+export const getFilteredPurchaseInvoicesCount = async (shopId: string, query: string) => {
     let qb = db.select({ total: count() }).from(purchaseInvoicesTable).$dynamic();
     if (query) {
         qb = qb
@@ -115,14 +133,16 @@ export const getFilteredPurchaseInvoicesCount = async (query: string) => {
                 purchaseSuppliersTable,
                 eq(purchaseSuppliersTable.invoiceId, purchaseInvoicesTable.id)
             )
-            .where(buildPurchaseSearchCondition(query));
+            .where(buildPurchaseSearchCondition(shopId, query));
+    } else {
+        qb = qb.where(eq(purchaseInvoicesTable.shopId, shopId));
     }
 
     const result = await qb;
     return result[0]?.total ?? 0;
 };
 
-export const getFilteredPurchaseInvoices = async (query: string, page: number) => {
+export const getFilteredPurchaseInvoices = async (shopId: string, query: string, page: number) => {
     const offset = (page - 1) * ITEMS_PER_PAGE;
 
     const invoices = await db
@@ -139,7 +159,7 @@ export const getFilteredPurchaseInvoices = async (query: string, page: number) =
             purchaseSuppliersTable,
             eq(purchaseSuppliersTable.invoiceId, purchaseInvoicesTable.id)
         )
-        .where(buildPurchaseSearchCondition(query))
+        .where(buildPurchaseSearchCondition(shopId, query))
         .orderBy(desc(purchaseInvoicesTable.createdAt))
         .limit(ITEMS_PER_PAGE)
         .offset(offset);
@@ -147,13 +167,25 @@ export const getFilteredPurchaseInvoices = async (query: string, page: number) =
     return invoices;
 };
 
-export const getPurchaseInvoicesPageCount = async (query: string) => {
-    const total = await getFilteredPurchaseInvoicesCount(query);
+export const getPurchaseInvoicesPageCount = async (shopId: string, query: string) => {
+    const total = await getFilteredPurchaseInvoicesCount(shopId, query);
     return Math.ceil(total / ITEMS_PER_PAGE);
 };
 
-export const deletePurchaseInvoice = async (id: string) => {
+export const deletePurchaseInvoice = async (id: string, shopId: string) => {
     return await db.transaction(async (tx) => {
+        // Verify ownership first
+        const invoice = await tx.query.purchaseInvoicesTable.findFirst({
+            where: and(
+                eq(purchaseInvoicesTable.id, id),
+                eq(purchaseInvoicesTable.shopId, shopId)
+            ),
+        });
+
+        if (!invoice) {
+            throw new Error('Invoice not found or access denied.');
+        }
+
         await tx
             .delete(purchaseInvoiceItemsTable)
             .where(eq(purchaseInvoiceItemsTable.invoiceId, id));
@@ -170,4 +202,3 @@ export const deletePurchaseInvoice = async (id: string) => {
         return deleted;
     });
 };
-

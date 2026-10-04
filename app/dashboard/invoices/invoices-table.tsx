@@ -1,5 +1,6 @@
 import { getFilteredSalesInvoices } from '@/db/queries/sales';
 import { getFilteredPurchaseInvoices } from '@/db/queries/purchase';
+import { requireSession } from '@/lib/session';
 import { ReceiptTextIcon } from 'lucide-react';
 import { InvoicesTableView } from '@/components/dashboard/invoices-table-view';
 
@@ -12,9 +13,10 @@ export default async function InvoicesTable({
     currentPage: number;
     type?: string;
 }) {
+    const { shopId } = await requireSession();
     const invoices = type === 'sales'
-        ? await getFilteredSalesInvoices(query, currentPage)
-        : await getFilteredPurchaseInvoices(query, currentPage);
+        ? await getFilteredSalesInvoices(shopId, query, currentPage)
+        : await getFilteredPurchaseInvoices(shopId, query, currentPage);
 
     if (invoices.length === 0) {
         return <EmptyState query={query} type={type} />;

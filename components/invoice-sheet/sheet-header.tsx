@@ -5,21 +5,31 @@ export function SheetHeader({
     invoiceNumber,
     formattedDate,
     title = 'Invoice',
+    shopName = 'Invoice Maker',
 }: {
     invoiceNumber: number;
     formattedDate: string;
     title?: string;
+    shopName?: string;
 }) {
+    const nameParts = shopName.trim().split(/\s+/);
+
     return (
         <div className="flex items-start justify-between">
             <h1
                 className={cn(
-                    'flex flex-col text-5xl font-bold tracking-wide text-[#D4AF37]',
+                    'flex flex-col text-4xl sm:text-5xl font-bold tracking-wide text-[#D4AF37] leading-tight',
                     playfair.className
                 )}
             >
-                <span>Krishna</span>
-                <span className='ml-6'>Jewellers</span>
+                {nameParts.length > 1 ? (
+                    <>
+                        <span>{nameParts[0]}</span>
+                        <span className="ml-4 sm:ml-6">{nameParts.slice(1).join(' ')}</span>
+                    </>
+                ) : (
+                    <span>{shopName}</span>
+                )}
             </h1>
             <div className="text-right">
                 <div

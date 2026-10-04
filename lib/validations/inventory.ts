@@ -9,7 +9,7 @@ export const categorySchema = z.object({
 });
 
 export const inventoryItemSchema = z.object({
-    categoryId: z.string().uuid('Please select a valid category'),
+    categoryId: z.uuid('Please select a valid category'),
     metalType: z.string().min(1, 'Metal type is required').trim(),
     metalPurity: z.string().trim().optional(),
     grossWeight: z.coerce.number().min(0, 'Gross weight cannot be negative'),

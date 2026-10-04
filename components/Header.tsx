@@ -13,11 +13,11 @@ export async function Header() {
         <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
             <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2">
+                <Link href={session ? '/dashboard' : '/'} className="flex items-center gap-2">
                     <span
                         className={`text-lg font-bold tracking-widest ${playfair.className}`}
                     >
-                        Krishna Jewellers
+                        {session ? session.shopName : 'Invoice Maker'}
                     </span>
                 </Link>
 
@@ -59,12 +59,6 @@ export async function Header() {
                                 </Button>
                             </form>
                         </>
-                    )}
-
-                    {!session && (
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href="/login">Sign In</Link>
-                        </Button>
                     )}
                 </div>
             </div>

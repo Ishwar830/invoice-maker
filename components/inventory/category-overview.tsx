@@ -9,12 +9,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getCategoriesWithStats } from '@/db/queries/inventory';
+import { requireSession } from '@/lib/session';
 import { PackageIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 
 export async function CategoryOverview() {
-    const categories = await getCategoriesWithStats();
+    const { shopId } = await requireSession();
+    const categories = await getCategoriesWithStats(shopId);
 
     if (categories.length === 0) {
         return (

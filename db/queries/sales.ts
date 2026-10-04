@@ -11,49 +11,64 @@ import { markItemsAsSold, markItemsAsAvailable } from './inventory';
 
 const ITEMS_PER_PAGE = 10;
 
-export const getNextSalesInvoiceNumber = async () => {
+export const getNextSalesInvoiceNumber = async (shopId: string) => {
     const date = new Date();
     const fyPrefix = getFinancialYearPrefix(date);
 
     const result = await db
         .select({ maxNum: max(salesInvoicesTable.invoiceNumber) })
         .from(salesInvoicesTable)
-        .where(eq(salesInvoicesTable.financialYear, fyPrefix));
+        .where(
+            and(
+                eq(salesInvoicesTable.shopId, shopId),
+                eq(salesInvoicesTable.financialYear, fyPrefix)
+            )
+        );
 
     return (result[0]?.maxNum ?? 0) + 1;
 };
 
-export const getSalesInvoiceById = async (id: string) => {
+export const getSalesInvoiceById = async (id: string, shopId: string) => {
     const invoice = await db.query.salesInvoicesTable.findFirst({
-        where: eq(salesInvoicesTable.id, id),
+        where: and(
+            eq(salesInvoicesTable.id, id),
+            eq(salesInvoicesTable.shopId, shopId)
+        ),
     });
 
     return invoice;
 };
 
-export const getSalesInvoiceWithCustomerAndItems = async (id: string) => {
+export const getSalesInvoiceWithCustomerAndItems = async (id: string, shopId: string) => {
     const invoice = await db.query.salesInvoicesTable.findFirst({
-        where: eq(salesInvoicesTable.id, id),
+        where: and(
+            eq(salesInvoicesTable.id, id),
+            eq(salesInvoicesTable.shopId, shopId)
+        ),
         with: {
             customer: true,
             items: true,
+            shop: true,
         },
     });
 
     return invoice;
 };
 
-const buildSalesSearchCondition = (query: string) => {
+const buildSalesSearchCondition = (shopId: string, query: string) => {
+    const base = eq(salesInvoicesTable.shopId, shopId);
     const searchTerm = `%${query}%`;
-    return query
-        ? or(
-              sql`${salesInvoicesTable.invoiceNumber}::text ILIKE ${searchTerm}`,
-              ilike(salesCustomersTable.name, searchTerm)
-          )
-        : undefined;
+    if (!query) return base;
+    return and(
+        base,
+        or(
+            sql`${salesInvoicesTable.invoiceNumber}::text ILIKE ${searchTerm}`,
+            ilike(salesCustomersTable.name, searchTerm)
+        )
+    );
 };
 
-export const getFilteredSalesInvoicesCount = async (query: string) => {
+export const getFilteredSalesInvoicesCount = async (shopId: string, query: string) => {
     let qb = db.select({ total: count() }).from(salesInvoicesTable).$dynamic();
     if (query) {
         qb = qb
@@ -61,14 +76,16 @@ export const getFilteredSalesInvoicesCount = async (query: string) => {
                 salesCustomersTable,
                 eq(salesCustomersTable.invoiceId, salesInvoicesTable.id)
             )
-            .where(buildSalesSearchCondition(query));
+            .where(buildSalesSearchCondition(shopId, query));
+    } else {
+        qb = qb.where(eq(salesInvoicesTable.shopId, shopId));
     }
 
     const result = await qb;
     return result[0]?.total ?? 0;
 };
 
-export const getFilteredSalesInvoices = async (query: string, page: number) => {
+export const getFilteredSalesInvoices = async (shopId: string, query: string, page: number) => {
     const offset = (page - 1) * ITEMS_PER_PAGE;
 
     const invoices = await db
@@ -85,7 +102,7 @@ export const getFilteredSalesInvoices = async (query: string, page: number) => {
             salesCustomersTable,
             eq(salesCustomersTable.invoiceId, salesInvoicesTable.id)
         )
-        .where(buildSalesSearchCondition(query))
+        .where(buildSalesSearchCondition(shopId, query))
         .orderBy(desc(salesInvoicesTable.createdAt))
         .limit(ITEMS_PER_PAGE)
         .offset(offset);
@@ -93,17 +110,18 @@ export const getFilteredSalesInvoices = async (query: string, page: number) => {
     return invoices;
 };
 
-export const getSalesInvoicesPageCount = async (query: string) => {
-    const total = await getFilteredSalesInvoicesCount(query);
+export const getSalesInvoicesPageCount = async (shopId: string, query: string) => {
+    const total = await getFilteredSalesInvoicesCount(shopId, query);
     return Math.ceil(total / ITEMS_PER_PAGE);
 };
 
-export const saveSalesInvoice = async (data: SalesInvoicePayload) => {
+export const saveSalesInvoice = async (data: SalesInvoicePayload, shopId: string) => {
     const invoiceDate = data.createdAt;
     const fyPrefix = getFinancialYearPrefix(invoiceDate);
 
     const existingInvoice = await db.query.salesInvoicesTable.findFirst({
         where: and(
+            eq(salesInvoicesTable.shopId, shopId),
             eq(salesInvoicesTable.financialYear, fyPrefix),
             eq(salesInvoicesTable.invoiceNumber, data.invoiceNumber)
         ),
@@ -123,6 +141,7 @@ export const saveSalesInvoice = async (data: SalesInvoicePayload) => {
             .insert(salesInvoicesTable)
             .values({
                 ...data,
+                shopId,
                 createdAt: data.createdAt.toISOString(),
                 financialYear: fyPrefix,
             })
@@ -151,7 +170,7 @@ export const saveSalesInvoice = async (data: SalesInvoicePayload) => {
     });
 };
 
-export const getRecentSalesInvoicesCount = async (days = 7) => {
+export const getRecentSalesInvoicesCount = async (shopId: string, days = 7) => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
     const dateString = cutoffDate.toISOString().split('T')[0];
@@ -159,13 +178,19 @@ export const getRecentSalesInvoicesCount = async (days = 7) => {
     const result = await db
         .select({ total: count() })
         .from(salesInvoicesTable)
-        .where(gte(salesInvoicesTable.createdAt, dateString));
+        .where(
+            and(
+                eq(salesInvoicesTable.shopId, shopId),
+                gte(salesInvoicesTable.createdAt, dateString)
+            )
+        );
 
     return result[0]?.total ?? 0;
 };
 
-export const getRecentSalesInvoices = async () => {
+export const getRecentSalesInvoices = async (shopId: string) => {
     const invoices = db.query.salesInvoicesTable.findMany({
+        where: eq(salesInvoicesTable.shopId, shopId),
         orderBy: (salesInvoicesTable, { desc }) => [desc(salesInvoicesTable.createdAt)],
         limit: 5,
         with: {
@@ -176,8 +201,20 @@ export const getRecentSalesInvoices = async () => {
     return invoices;
 };
 
-export const deleteSalesInvoice = async (id: string) => {
+export const deleteSalesInvoice = async (id: string, shopId: string) => {
     return await db.transaction(async (tx) => {
+        // First verify ownership
+        const invoice = await tx.query.salesInvoicesTable.findFirst({
+            where: and(
+                eq(salesInvoicesTable.id, id),
+                eq(salesInvoicesTable.shopId, shopId)
+            ),
+        });
+
+        if (!invoice) {
+            throw new Error('Invoice not found or access denied.');
+        }
+
         // Collect linked inventory item IDs before deleting rows
         const linkedItems = await tx
             .select({ inventoryItemId: salesInvoiceItemsTable.inventoryItemId })
@@ -207,4 +244,3 @@ export const deleteSalesInvoice = async (id: string) => {
         return deleted;
     });
 };
-

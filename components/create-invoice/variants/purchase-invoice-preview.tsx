@@ -14,7 +14,7 @@ import { useEffect } from 'react';
 
 export function PurchaseInvoicePreview() {
     const {
-        state: { invoiceData: data },
+        state: { invoiceData: data, shop },
         actions: { setShowPreview },
     } = useInvoice();
 
@@ -94,7 +94,7 @@ export function PurchaseInvoicePreview() {
                 </div>
             </div>
 
-            <PurchaseInvoiceSheet data={sheetData} />
+            <PurchaseInvoiceSheet data={sheetData} shop={shop} />
         </div>
     );
 }

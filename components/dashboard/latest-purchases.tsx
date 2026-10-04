@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { getRecentPurchaseInvoices } from '@/db/queries/purchase';
+import { requireSession } from '@/lib/session';
 import { ReceiptTextIcon, CircleAlert } from 'lucide-react';
 import { InvoicesTableView } from './invoices-table-view';
 
@@ -8,7 +9,8 @@ export async function LatestPurchasesTable() {
     let errorMessage = null;
 
     try {
-        invoices = await getRecentPurchaseInvoices();
+        const { shopId } = await requireSession();
+        invoices = await getRecentPurchaseInvoices(shopId);
     } catch (e) {
         console.error(e);
         errorMessage = 'Could not load latest purchases';

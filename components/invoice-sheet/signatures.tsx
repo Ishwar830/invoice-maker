@@ -1,9 +1,11 @@
 export function Signatures({
     partyName,
     leftLabel = 'Customer Signature',
+    shopName = 'Authorized Signatory',
 }: {
     partyName: string;
     leftLabel?: string;
+    shopName?: string;
 }) {
     return (
         <div className="grid grid-cols-2 gap-8">
@@ -23,7 +25,7 @@ export function Signatures({
                         Authorized Signature
                     </div>
                     <div className="mt-0.5 text-[10px] text-muted-foreground">
-                        Krishna Jewellers
+                        {shopName}
                     </div>
                 </div>
             </div>

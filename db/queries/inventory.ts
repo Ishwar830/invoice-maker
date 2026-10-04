@@ -13,17 +13,20 @@ const ITEMS_PER_PAGE = 10;
 
 function generateItemCode(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const suffix = Array.from({ length: 4 }, () =>
+    const code = Array.from({ length: 6 }, () =>
         chars[Math.floor(Math.random() * chars.length)]
     ).join('');
-    return `KJ-${suffix}`;
+    return code;
 }
 
-async function generateUniqueItemCode(): Promise<string> {
+async function generateUniqueItemCode(shopId: string): Promise<string> {
     for (let attempt = 0; attempt < 10; attempt++) {
         const code = generateItemCode();
         const existing = await db.query.inventoryItemsTable.findFirst({
-            where: eq(inventoryItemsTable.itemCode, code),
+            where: and(
+                eq(inventoryItemsTable.shopId, shopId),
+                eq(inventoryItemsTable.itemCode, code)
+            ),
         });
         if (!existing) return code;
     }
@@ -32,8 +35,9 @@ async function generateUniqueItemCode(): Promise<string> {
 
 // ─── Category Queries ─────────────────────────────────────────────────────────
 
-export const getCategories = async () => {
+export const getCategories = async (shopId: string) => {
     return db.query.inventoryCategoriesTable.findMany({
+        where: eq(inventoryCategoriesTable.shopId, shopId),
         orderBy: (t, { asc }) => [asc(t.name)],
         with: {
             items: {
@@ -43,7 +47,7 @@ export const getCategories = async () => {
     });
 };
 
-export const getCategoriesWithStats = async () => {
+export const getCategoriesWithStats = async (shopId: string) => {
     const rows = await db
         .select({
             id: inventoryCategoriesTable.id,
@@ -61,6 +65,7 @@ export const getCategoriesWithStats = async () => {
                 eq(inventoryItemsTable.status, 'available')
             )
         )
+        .where(eq(inventoryCategoriesTable.shopId, shopId))
         .groupBy(inventoryCategoriesTable.id, inventoryCategoriesTable.name, inventoryCategoriesTable.createdAt)
         .orderBy(inventoryCategoriesTable.name);
 
@@ -72,35 +77,47 @@ export const getCategoriesWithStats = async () => {
     }));
 };
 
-
-export const getCategoryById = async (id: string) => {
+export const getCategoryById = async (id: string, shopId: string) => {
     return db.query.inventoryCategoriesTable.findFirst({
-        where: eq(inventoryCategoriesTable.id, id),
+        where: and(
+            eq(inventoryCategoriesTable.id, id),
+            eq(inventoryCategoriesTable.shopId, shopId)
+        ),
     });
 };
 
-export const saveCategory = async (data: CategoryPayload) => {
+export const saveCategory = async (data: CategoryPayload, shopId: string) => {
     const [inserted] = await db
         .insert(inventoryCategoriesTable)
-        .values({ name: data.name })
+        .values({ name: data.name, shopId })
         .returning();
     return inserted;
 };
 
-export const updateCategory = async (id: string, data: CategoryPayload) => {
+export const updateCategory = async (id: string, data: CategoryPayload, shopId: string) => {
     const [updated] = await db
         .update(inventoryCategoriesTable)
         .set({ name: data.name })
-        .where(eq(inventoryCategoriesTable.id, id))
+        .where(
+            and(
+                eq(inventoryCategoriesTable.id, id),
+                eq(inventoryCategoriesTable.shopId, shopId)
+            )
+        )
         .returning();
     return updated;
 };
 
-export const deleteCategory = async (id: string) => {
+export const deleteCategory = async (id: string, shopId: string) => {
     const itemCount = await db
         .select({ total: count() })
         .from(inventoryItemsTable)
-        .where(eq(inventoryItemsTable.categoryId, id));
+        .where(
+            and(
+                eq(inventoryItemsTable.categoryId, id),
+                eq(inventoryItemsTable.shopId, shopId)
+            )
+        );
 
     if ((itemCount[0]?.total ?? 0) > 0) {
         throw new Error(
@@ -110,19 +127,25 @@ export const deleteCategory = async (id: string) => {
 
     const [deleted] = await db
         .delete(inventoryCategoriesTable)
-        .where(eq(inventoryCategoriesTable.id, id))
+        .where(
+            and(
+                eq(inventoryCategoriesTable.id, id),
+                eq(inventoryCategoriesTable.shopId, shopId)
+            )
+        )
         .returning();
     return deleted;
 };
 
 // ─── Inventory Item Queries ───────────────────────────────────────────────────
 
-export const getInventoryItemsCount = async (categoryId?: string) => {
+export const getInventoryItemsCount = async (shopId: string, categoryId?: string) => {
     const result = await db
         .select({ total: count() })
         .from(inventoryItemsTable)
         .where(
             and(
+                eq(inventoryItemsTable.shopId, shopId),
                 eq(inventoryItemsTable.status, 'available'),
                 categoryId ? eq(inventoryItemsTable.categoryId, categoryId) : undefined
             )
@@ -130,16 +153,17 @@ export const getInventoryItemsCount = async (categoryId?: string) => {
     return result[0]?.total ?? 0;
 };
 
-export const getInventoryItemsPageCount = async (categoryId?: string) => {
-    const total = await getInventoryItemsCount(categoryId);
+export const getInventoryItemsPageCount = async (shopId: string, categoryId?: string) => {
+    const total = await getInventoryItemsCount(shopId, categoryId);
     return Math.ceil(total / ITEMS_PER_PAGE);
 };
 
-export const getInventoryItems = async (categoryId?: string, page = 1) => {
+export const getInventoryItems = async (shopId: string, categoryId?: string, page = 1) => {
     const offset = (page - 1) * ITEMS_PER_PAGE;
     return db.query.inventoryItemsTable.findMany({
         where: (t, { eq, and }) =>
             and(
+                eq(t.shopId, shopId),
                 eq(t.status, 'available'),
                 categoryId ? eq(t.categoryId, categoryId) : undefined
             ),
@@ -154,16 +178,16 @@ export const getInventoryItems = async (categoryId?: string, page = 1) => {
     });
 };
 
-export const saveInventoryItem = async (data: InventoryItemPayload) => {
-    const itemCode = await generateUniqueItemCode();
+export const saveInventoryItem = async (data: InventoryItemPayload, shopId: string) => {
+    const itemCode = await generateUniqueItemCode(shopId);
     const [inserted] = await db
         .insert(inventoryItemsTable)
-        .values({ ...data, itemCode })
+        .values({ ...data, itemCode, shopId })
         .returning();
     return inserted;
 };
 
-export const updateInventoryItem = async (id: string, data: InventoryItemPayload) => {
+export const updateInventoryItem = async (id: string, data: InventoryItemPayload, shopId: string) => {
     const [updated] = await db
         .update(inventoryItemsTable)
         .set({
@@ -173,24 +197,39 @@ export const updateInventoryItem = async (id: string, data: InventoryItemPayload
             grossWeight: data.grossWeight,
             netWeight: data.netWeight,
         })
-        .where(eq(inventoryItemsTable.id, id))
+        .where(
+            and(
+                eq(inventoryItemsTable.id, id),
+                eq(inventoryItemsTable.shopId, shopId)
+            )
+        )
         .returning();
     return updated;
 };
 
-export const deleteInventoryItem = async (id: string) => {
+export const deleteInventoryItem = async (id: string, shopId: string) => {
     const [deleted] = await db
         .delete(inventoryItemsTable)
-        .where(eq(inventoryItemsTable.id, id))
+        .where(
+            and(
+                eq(inventoryItemsTable.id, id),
+                eq(inventoryItemsTable.shopId, shopId)
+            )
+        )
         .returning();
     return deleted;
 };
 
-export const getInventoryStats = async () => {
-    const [totalItems] = await db.select({ total: count() }).from(inventoryItemsTable);
+export const getInventoryStats = async (shopId: string) => {
+    const [totalItems] = await db
+        .select({ total: count() })
+        .from(inventoryItemsTable)
+        .where(eq(inventoryItemsTable.shopId, shopId));
+
     const [totalCategories] = await db
         .select({ total: count() })
-        .from(inventoryCategoriesTable);
+        .from(inventoryCategoriesTable)
+        .where(eq(inventoryCategoriesTable.shopId, shopId));
 
     const perCategory = await db
         .select({
@@ -203,6 +242,7 @@ export const getInventoryStats = async () => {
             inventoryCategoriesTable,
             eq(inventoryItemsTable.categoryId, inventoryCategoriesTable.id)
         )
+        .where(eq(inventoryItemsTable.shopId, shopId))
         .groupBy(inventoryItemsTable.categoryId, inventoryCategoriesTable.name)
         .orderBy(desc(count(inventoryItemsTable.id)));
 
@@ -216,8 +256,8 @@ export const getInventoryStats = async () => {
 // ─── Inventory Search for Invoice Linking ────────────────────────────────────
 // InventorySearchResult type is defined in @/lib/types
 
-
 export const searchInventoryItemsByCode = async (
+    shopId: string,
     query: string,
     limit = 5
 ): Promise<InventorySearchResult[]> => {
@@ -241,6 +281,7 @@ export const searchInventoryItemsByCode = async (
         )
         .where(
             and(
+                eq(inventoryItemsTable.shopId, shopId),
                 eq(inventoryItemsTable.status, 'available'),
                 ilike(inventoryItemsTable.itemCode, searchTerm)
             )

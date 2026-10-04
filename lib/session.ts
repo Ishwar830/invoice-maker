@@ -1,41 +1,32 @@
 import 'server-only';
-import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { db } from '@/db';
+import { sessionsTable, shopsTable } from '@/db/schema';
+import { eq, and, gt } from 'drizzle-orm';
+import { randomBytes } from 'crypto';
 
-const secretKey = process.env.SESSION_SECRET;
-const encodedKey = new TextEncoder().encode(secretKey);
+const SESSION_COOKIE = 'session';
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-type SessionPayload = {
+export type SessionPayload = {
+    shopId: string;
+    shopName: string;
     username: string;
-    expiresAt: Date;
 };
 
-export async function encrypt(payload: SessionPayload) {
-    return new SignJWT(payload as unknown as Record<string, unknown>)
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime('7d')
-        .sign(encodedKey);
+function generateToken(): string {
+    return randomBytes(64).toString('hex'); // 128-char hex string
 }
 
-export async function decrypt(session: string | undefined = '') {
-    try {
-        const { payload } = await jwtVerify(session, encodedKey, {
-            algorithms: ['HS256'],
-        });
-        return payload as unknown as SessionPayload;
-    } catch {
-        console.log('Failed to verify session');
-        return null;
-    }
-}
+export async function createSession(shopId: string): Promise<void> {
+    const token = generateToken();
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
-export async function createSession(username: string) {
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    const session = await encrypt({ username, expiresAt });
+    await db.insert(sessionsTable).values({ shopId, token, expiresAt });
+
     const cookieStore = await cookies();
-
-    cookieStore.set('session', session, {
+    cookieStore.set(SESSION_COOKIE, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         expires: expiresAt,
@@ -44,14 +35,53 @@ export async function createSession(username: string) {
     });
 }
 
-export async function deleteSession() {
+export async function getSession(): Promise<SessionPayload | null> {
     const cookieStore = await cookies();
-    cookieStore.delete('session');
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    if (!token) return null;
+
+    const now = new Date();
+
+    const [row] = await db
+        .select({
+            shopId: sessionsTable.shopId,
+            shopName: shopsTable.name,
+            username: shopsTable.username,
+        })
+        .from(sessionsTable)
+        .innerJoin(shopsTable, eq(sessionsTable.shopId, shopsTable.id))
+        .where(
+            and(
+                eq(sessionsTable.token, token),
+                gt(sessionsTable.expiresAt, now)
+            )
+        )
+        .limit(1);
+
+    if (!row) return null;
+
+    return {
+        shopId: row.shopId,
+        shopName: row.shopName,
+        username: row.username,
+    };
 }
 
-export async function getSession() {
+export async function requireSession(): Promise<SessionPayload> {
+    const session = await getSession();
+    if (!session) {
+        redirect('/login');
+    }
+    return session;
+}
+
+export async function deleteSession(): Promise<void> {
     const cookieStore = await cookies();
-    const session = cookieStore.get('session')?.value;
-    if (!session) return null;
-    return decrypt(session);
+    const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (token) {
+        await db.delete(sessionsTable).where(eq(sessionsTable.token, token));
+    }
+
+    cookieStore.delete(SESSION_COOKIE);
 }

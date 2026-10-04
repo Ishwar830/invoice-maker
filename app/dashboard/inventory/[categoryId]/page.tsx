@@ -10,6 +10,7 @@ import {
     getCategoriesWithStats,
     getInventoryItems,
 } from '@/db/queries/inventory';
+import { requireSession, getSession } from '@/lib/session';
 import { InventoryTable } from '@/components/inventory/inventory-table';
 import { InventoryTableSkeleton } from '@/components/inventory/inventory-table-skeleton';
 import { CategoryDetailClient } from './category-detail-client';
@@ -21,10 +22,11 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
     const { categoryId } = await params;
-    const category = await getCategoryById(categoryId);
+    const session = await getSession();
+    const category = session ? await getCategoryById(categoryId, session.shopId) : null;
     return {
         title: category
-            ? `${category.name} — Inventory — Krishna Jewellers`
+            ? `${category.name} — Inventory`
             : 'Category — Inventory',
     };
 }
@@ -33,12 +35,13 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
     const { categoryId } = await params;
     const { page: pageStr } = await searchParams;
     const page = Number(pageStr ?? '1');
+    const { shopId } = await requireSession();
 
     // Fetch in parallel — notFound handled after
     const [category, allCategoryStats, allCategories] = await Promise.all([
-        getCategoryById(categoryId),
-        getCategoriesWithStats(),
-        getCategories(),
+        getCategoryById(categoryId, shopId),
+        getCategoriesWithStats(shopId),
+        getCategories(shopId),
     ]);
 
     if (!category) notFound();

@@ -14,6 +14,7 @@ import {
     type InvoiceFormData,
     type InvoiceFormItem,
     type InventorySearchResult,
+    type ShopProfile,
 } from '@/lib/types';
 
 function generateId() {
@@ -36,6 +37,7 @@ function createEmptyItem(): InvoiceFormItem {
 interface InvoiceState {
     invoiceData: InvoiceFormData;
     showPreview: boolean;
+    shop?: ShopProfile | null;
 }
 
 interface InvoiceActions {
@@ -69,9 +71,11 @@ export function useInvoice(): InvoiceContextValue {
 export function InvoiceProvider({
     children,
     initialData,
+    shop = null,
 }: {
     children: ReactNode;
     initialData: InvoiceFormData;
+    shop?: ShopProfile | null;
 }) {
     const [showPreview, setShowPreview] = useState(false);
     const [invoiceData, setInvoiceData] = useState<InvoiceFormData>(initialData);
@@ -174,7 +178,7 @@ export function InvoiceProvider({
     }, []);
 
     const contextValue: InvoiceContextValue = {
-        state: { invoiceData, showPreview },
+        state: { invoiceData, showPreview, shop },
         actions: {
             updateField,
             updateCustomer,

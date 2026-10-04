@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/pagination';
 import { getSalesInvoicesPageCount } from '@/db/queries/sales';
 import { getPurchaseInvoicesPageCount } from '@/db/queries/purchase';
+import { requireSession } from '@/lib/session';
 
 export default async function InvoicesPagination({
     query,
@@ -19,9 +20,10 @@ export default async function InvoicesPagination({
     currentPage: number;
     type?: string;
 }) {
+    const { shopId } = await requireSession();
     const totalPages = type === 'sales'
-        ? await getSalesInvoicesPageCount(query)
-        : await getPurchaseInvoicesPageCount(query);
+        ? await getSalesInvoicesPageCount(shopId, query)
+        : await getPurchaseInvoicesPageCount(shopId, query);
 
     if (totalPages <= 1) return null;
 
