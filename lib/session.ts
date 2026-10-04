@@ -2,7 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { sessionsTable, shopsTable } from '@/db/schema';
+import { sessionsTable, shopsTable, usersTable } from '@/db/schema';
 import { eq, and, gt } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 
@@ -10,6 +10,7 @@ const SESSION_COOKIE = 'session';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export type SessionPayload = {
+    userId: string;
     shopId: string;
     shopName: string;
     username: string;
@@ -19,11 +20,11 @@ function generateToken(): string {
     return randomBytes(64).toString('hex'); // 128-char hex string
 }
 
-export async function createSession(shopId: string): Promise<void> {
+export async function createSession(userId: string): Promise<void> {
     const token = generateToken();
     const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
-    await db.insert(sessionsTable).values({ shopId, token, expiresAt });
+    await db.insert(sessionsTable).values({ userId, token, expiresAt });
 
     const cookieStore = await cookies();
     cookieStore.set(SESSION_COOKIE, token, {
@@ -44,12 +45,14 @@ export async function getSession(): Promise<SessionPayload | null> {
 
     const [row] = await db
         .select({
-            shopId: sessionsTable.shopId,
+            userId: usersTable.id,
+            shopId: shopsTable.id,
             shopName: shopsTable.name,
-            username: shopsTable.username,
+            username: usersTable.username,
         })
         .from(sessionsTable)
-        .innerJoin(shopsTable, eq(sessionsTable.shopId, shopsTable.id))
+        .innerJoin(usersTable, eq(sessionsTable.userId, usersTable.id))
+        .innerJoin(shopsTable, eq(shopsTable.userId, usersTable.id))
         .where(
             and(
                 eq(sessionsTable.token, token),
@@ -61,6 +64,7 @@ export async function getSession(): Promise<SessionPayload | null> {
     if (!row) return null;
 
     return {
+        userId: row.userId,
         shopId: row.shopId,
         shopName: row.shopName,
         username: row.username,

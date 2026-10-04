@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { getSession } from '@/lib/session';
 import Link from 'next/link';
-import { LayoutDashboardIcon, LogOutIcon, PackageIcon } from 'lucide-react';
+import { LayoutDashboardIcon, LogOutIcon, PackageIcon, SettingsIcon } from 'lucide-react';
 
 export async function Header() {
     const session = await getSession();
@@ -36,6 +36,13 @@ export async function Header() {
                                 <Link href="/dashboard/inventory">
                                     <PackageIcon data-icon="inline-start" />
                                     Inventory
+                                </Link>
+                            </Button>
+
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link href="/dashboard/settings">
+                                    <SettingsIcon data-icon="inline-start" />
+                                    Settings
                                 </Link>
                             </Button>
 

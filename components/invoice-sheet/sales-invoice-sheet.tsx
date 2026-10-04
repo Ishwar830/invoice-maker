@@ -27,10 +27,10 @@ export function SalesInvoiceSheet({
 
     const shopBank = shop
         ? {
-              name: shop.bankName,
-              branch: shop.bankBranch,
-              ifscCode: shop.bankIfsc,
-              accountNumber: shop.bankAccountNumber,
+              name: shop.bankDetails?.bankName ?? shop.bankName,
+              branch: shop.bankDetails?.bankBranch ?? shop.bankBranch,
+              ifscCode: shop.bankDetails?.bankIfsc ?? shop.bankIfsc,
+              accountNumber: shop.bankDetails?.bankAccountNumber ?? shop.bankAccountNumber,
           }
         : null;
 
@@ -81,7 +81,7 @@ export function SalesInvoiceSheet({
 
             <Notes text={data.notes || undefined} />
 
-            <BankDetails details={shopBank} />
+            {shopBank?.name && <BankDetails details={shopBank} />}
 
             <Separator className="bg-black" />
 

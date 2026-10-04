@@ -64,13 +64,24 @@ export type InvoiceFormData = {
 export const INVOICE_TYPES = ['sales', 'purchase'] as const;
 export type InvoiceType = (typeof INVOICE_TYPES)[number];
 
+export type BankDetailsProfile = {
+    id?: string;
+    userId?: string;
+    bankName?: string | null;
+    bankBranch?: string | null;
+    bankIfsc?: string | null;
+    bankAccountNumber?: string | null;
+};
+
 export type ShopProfile = {
     id?: string;
+    userId?: string;
     name: string;
     ownerName?: string | null;
     gstNumber?: string | null;
     phone?: string | null;
     address?: string | null;
+    bankDetails?: BankDetailsProfile | null;
     bankName?: string | null;
     bankBranch?: string | null;
     bankIfsc?: string | null;

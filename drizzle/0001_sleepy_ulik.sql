@@ -1,3 +1,0 @@
-CREATE UNIQUE INDEX "sales_invoices_shop_fy_number_idx" ON "sales_invoices" USING btree ("shop_id","financial_year","invoice_number");--> statement-breakpoint
-CREATE UNIQUE INDEX "purchase_invoices_shop_fy_number_idx" ON "purchase_invoices" USING btree ("shop_id","financial_year","invoice_number");--> statement-breakpoint
-CREATE UNIQUE INDEX "inventory_categories_shop_name_idx" ON "inventory_categories" USING btree ("shop_id","name");

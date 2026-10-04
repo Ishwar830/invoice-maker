@@ -48,11 +48,36 @@ export const getSalesInvoiceWithCustomerAndItems = async (id: string, shopId: st
         with: {
             customer: true,
             items: true,
-            shop: true,
+            shop: {
+                with: {
+                    user: {
+                        with: {
+                            bankDetails: true,
+                        },
+                    },
+                },
+            },
         },
     });
 
-    return invoice;
+    if (!invoice) return null;
+
+    const bank = invoice.shop?.user?.bankDetails;
+    const shop = invoice.shop
+        ? {
+              ...invoice.shop,
+              bankDetails: bank || null,
+              bankName: bank?.bankName || null,
+              bankBranch: bank?.bankBranch || null,
+              bankIfsc: bank?.bankIfsc || null,
+              bankAccountNumber: bank?.bankAccountNumber || null,
+          }
+        : null;
+
+    return {
+        ...invoice,
+        shop,
+    };
 };
 
 const buildSalesSearchCondition = (shopId: string, query: string) => {

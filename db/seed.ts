@@ -1,6 +1,8 @@
 import { db } from './index';
 import {
+    usersTable,
     shopsTable,
+    bankDetailsTable,
     sessionsTable,
     inventoryCategoriesTable,
     inventoryItemsTable,
@@ -34,46 +36,63 @@ async function seed() {
         await db.delete(purchaseInvoicesTable);
         await db.delete(inventoryItemsTable);
         await db.delete(inventoryCategoriesTable);
+        await db.delete(bankDetailsTable);
         await db.delete(shopsTable);
+        await db.delete(usersTable);
 
-        // 2. Define shops to seed
+        // 2. Define data to seed
         const defaultPassword = 'Password123!';
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-        const shopsData = [
+        console.log('👤 Inserting users...');
+        const [user1, user2] = await db
+            .insert(usersTable)
+            .values([
+                { username: 'krishna', password: hashedPassword },
+                { username: 'radha', password: hashedPassword },
+            ])
+            .returning();
+
+        console.log('🏪 Inserting shops...');
+        const [shop1, shop2] = await db
+            .insert(shopsTable)
+            .values([
+                {
+                    userId: user1.id,
+                    name: 'Krishna Jewellers',
+                    ownerName: 'Ramesh Suthar',
+                    gstNumber: '24ABCDE1234F1Z5',
+                    phone: '9876543210',
+                    address: 'Station Road, Palanpur, Gujarat - 385001',
+                },
+                {
+                    userId: user2.id,
+                    name: 'Radha Silver & Gold',
+                    ownerName: 'Mohan Lal',
+                    gstNumber: '24XYZAB5678C1D2',
+                    phone: '9812345678',
+                    address: 'MG Road, Ahmedabad, Gujarat - 380001',
+                },
+            ])
+            .returning();
+
+        console.log('🏦 Inserting bank details...');
+        await db.insert(bankDetailsTable).values([
             {
-                username: 'krishna',
-                password: hashedPassword,
-                name: 'Krishna Jewellers',
-                ownerName: 'Ramesh Suthar',
-                gstNumber: '24ABCDE1234F1Z5',
-                phone: '9876543210',
-                address: 'Station Road, Palanpur, Gujarat - 385001',
+                userId: user1.id,
                 bankName: 'Kotak Mahindra Bank',
                 bankBranch: 'Ambernath East',
                 bankIfsc: 'KKBK0002040',
                 bankAccountNumber: '9833865787',
             },
             {
-                username: 'radha',
-                password: hashedPassword,
-                name: 'Radha Silver & Gold',
-                ownerName: 'Mohan Lal',
-                gstNumber: '24XYZAB5678C1D2',
-                phone: '9812345678',
-                address: 'MG Road, Ahmedabad, Gujarat - 380001',
+                userId: user2.id,
                 bankName: 'State Bank of India',
                 bankBranch: 'Ashram Road, Ahmedabad',
                 bankIfsc: 'SBIN0001234',
                 bankAccountNumber: '38927401928',
             },
-        ];
-
-        console.log('🏪 Inserting shops...');
-        const [shop1, shop2] = await db
-            .insert(shopsTable)
-            .values(shopsData)
-            .returning();
+        ]);
 
         const shops = [
             {

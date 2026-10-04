@@ -6,7 +6,7 @@ import {
     CardDescription,
     CardContent,
 } from '@/components/ui/card';
-import { PlusCircleIcon, FileTextIcon, ArrowUpRightIcon } from 'lucide-react';
+import { PlusCircleIcon, FileTextIcon, ArrowUpRightIcon, SettingsIcon } from 'lucide-react';
 import { playfair } from '@/lib/fonts';
 
 export function QuickActions() {
@@ -101,6 +101,31 @@ export function QuickActions() {
                         <CardContent className="pt-1 flex items-center justify-between">
                             <span className="text-xs font-bold text-neutral-800 dark:text-neutral-100 group-hover:text-amber-600 transition-colors">
                                 All Invoices
+                            </span>
+                            <ArrowUpRightIcon className="h-4 w-4 text-neutral-400 dark:text-neutral-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        </CardContent>
+                    </Card>
+                </Link>
+
+                {/* Shop & Bank Settings Action Card */}
+                <Link href="/dashboard/settings" className="group block">
+                    <Card className="relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-amber-500/30 border-l-4 border-l-amber-500 border border-neutral-200/60 dark:border-neutral-800 bg-white dark:bg-neutral-900/50 cursor-pointer">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <div className="space-y-0.5">
+                                <CardTitle className="text-xs font-semibold tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
+                                    Shop & Bank Settings
+                                </CardTitle>
+                                <CardDescription className="text-[10px] text-neutral-400">
+                                    Update shop details, GSTIN, and bank account
+                                </CardDescription>
+                            </div>
+                            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 transition-transform duration-300 group-hover:scale-110">
+                                <SettingsIcon className="h-4 w-4" />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-1 flex items-center justify-between">
+                            <span className="text-xs font-bold text-neutral-800 dark:text-neutral-100 group-hover:text-amber-600 transition-colors">
+                                Manage Profile
                             </span>
                             <ArrowUpRightIcon className="h-4 w-4 text-neutral-400 dark:text-neutral-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                         </CardContent>

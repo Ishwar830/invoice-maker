@@ -3,7 +3,7 @@
 import { createSession, deleteSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { shopsTable } from '@/db/schema';
+import { usersTable } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
@@ -24,22 +24,22 @@ export async function login(
         return { error: 'Please enter both username and password.' };
     }
 
-    const [shop] = await db
+    const [user] = await db
         .select()
-        .from(shopsTable)
-        .where(eq(shopsTable.username, username))
+        .from(usersTable)
+        .where(eq(usersTable.username, username))
         .limit(1);
 
-    if (!shop) {
+    if (!user) {
         return { error: 'Invalid username or password.' };
     }
 
-    const passwordMatch = await bcrypt.compare(password, shop.password);
+    const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
         return { error: 'Invalid username or password.' };
     }
 
-    await createSession(shop.id);
+    await createSession(user.id);
     redirect('/dashboard');
 }
 

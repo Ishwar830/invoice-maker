@@ -1,4 +1,6 @@
+export * from "./users";
 export * from "./shops";
+export * from "./bank-details";
 export * from "./sessions";
 export * from "./sales-invoices";
 export * from "./sales-customers";
