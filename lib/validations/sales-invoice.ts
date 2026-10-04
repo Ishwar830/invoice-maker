@@ -22,11 +22,11 @@ const customerSchema = z.object({
         .optional()
         .or(z.literal('')),
     address: z.string().optional(),
-    gstNumber: z
+    panGstNumber: z
         .string()
         .regex(
-            /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-            'Invalid GST format'
+            /^([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}|[A-Z]{5}[0-9]{4}[A-Z]{1})$/i,
+            'Invalid GST or PAN format'
         )
         .optional()
         .or(z.literal('')),

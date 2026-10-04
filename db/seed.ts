@@ -108,13 +108,13 @@ async function seed() {
                     name: 'Rajesh Sharma',
                     phone: '9876543210',
                     address: '12, MG Road, Mumbai',
-                    gstNumber: '27AAAAA1111A1Z1',
+                    panGstNumber: '27AAAAA1111A1Z1',
                 },
                 supplier: {
                     name: 'Surat Bullion Mart',
                     phone: '9871122334',
                     address: 'Diamond Market, Surat',
-                    gstNumber: '24GGGGG5555G1Z9',
+                    panGstNumber: '24GGGGG5555G1Z9',
                 },
             },
             {
@@ -130,13 +130,13 @@ async function seed() {
                     name: 'Priya Patel',
                     phone: '9823456789',
                     address: '45, SG Highway, Ahmedabad',
-                    gstNumber: '',
+                    panGstNumber: '',
                 },
                 supplier: {
                     name: 'Rajkot Silver Refineries',
                     phone: '9822334455',
                     address: 'Soni Bazar, Rajkot',
-                    gstNumber: '24HHHHH6666H1Z8',
+                    panGstNumber: '24HHHHH6666H1Z8',
                 },
             },
         ];
@@ -217,7 +217,7 @@ async function seed() {
                     name: config.customer.name,
                     phone: config.customer.phone,
                     address: config.customer.address,
-                    gstNumber: config.customer.gstNumber || null,
+                    panGstNumber: config.customer.panGstNumber || null,
                 });
 
                 await tx.insert(salesInvoiceItemsTable).values({
@@ -256,7 +256,7 @@ async function seed() {
                     name: config.supplier.name,
                     phone: config.supplier.phone,
                     address: config.supplier.address,
-                    gstNumber: config.supplier.gstNumber,
+                    panGstNumber: config.supplier.panGstNumber || null,
                 });
 
                 await tx.insert(purchaseInvoiceItemsTable).values({

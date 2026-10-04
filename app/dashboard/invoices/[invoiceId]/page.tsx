@@ -47,12 +47,12 @@ export default async function InvoiceDetailPage({ params }: Props) {
             name: invoice.customer?.name ?? '',
             phone: invoice.customer?.phone ?? undefined,
             address: invoice.customer?.address ?? undefined,
-            gstNumber: invoice.customer?.gstNumber ?? undefined,
+            panGstNumber: invoice.customer?.panGstNumber ?? undefined,
         } : {
             name: invoice.supplier?.name ?? '',
             phone: invoice.supplier?.phone ?? undefined,
             address: invoice.supplier?.address ?? undefined,
-            gstNumber: invoice.supplier?.gstNumber ?? undefined,
+            panGstNumber: invoice.supplier?.panGstNumber ?? undefined,
         },
         items: invoice.items.map((item: any) => ({
             ...item,

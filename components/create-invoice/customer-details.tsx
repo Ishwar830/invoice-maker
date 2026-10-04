@@ -51,18 +51,18 @@ export function CustomerDetails({ partyLabel = 'Customer' }: { partyLabel?: stri
                     />
                 </FormField>
                 <FormField
-                    label="GST No."
+                    label="PAN / GST No."
                     icon={
                         <HashIcon className="size-3.5 text-muted-foreground" />
                     }
                 >
                     <Input
-                        id="customer-gst-number"
-                        className="text-sm"
-                        value={invoiceData.customer.gstNumber ?? ''}
-                        placeholder="27ABCDE1234F1Z5"
+                        id="customer-pan-gst-number"
+                        className="text-sm uppercase"
+                        value={invoiceData.customer.panGstNumber ?? ''}
+                        placeholder="e.g. 24ABCDE1234F1Z5 or ABCDE1234F"
                         onChange={(e) =>
-                            updateCustomer('gstNumber', e.target.value)
+                            updateCustomer('panGstNumber', e.target.value.toUpperCase())
                         }
                     />
                 </FormField>

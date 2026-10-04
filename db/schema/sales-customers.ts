@@ -12,7 +12,7 @@ export const salesCustomersTable = table('sales_customers', {
     name: t.varchar().notNull(),
     phone: t.varchar(),
     address: t.varchar(),
-    gstNumber: t.varchar(),
+    panGstNumber: t.varchar(),
 });
 
 export const salesCustomerRelations = relations(salesCustomersTable, ({ one }) => ({

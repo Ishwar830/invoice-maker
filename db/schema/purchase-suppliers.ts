@@ -12,7 +12,7 @@ export const purchaseSuppliersTable = table('purchase_suppliers', {
     name: t.varchar().notNull(),
     phone: t.varchar(),
     address: t.varchar(),
-    gstNumber: t.varchar(),
+    panGstNumber: t.varchar(),
 });
 
 export const purchaseSupplierRelations = relations(purchaseSuppliersTable, ({ one }) => ({

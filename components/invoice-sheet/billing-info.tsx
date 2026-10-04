@@ -2,7 +2,8 @@ export interface BillingInfoData {
     name: string;
     phone: string | null;
     address: string | null;
-    gstNumber: string | null;
+    gstNumber?: string | null;
+    panGstNumber?: string | null;
 }
 
 export function BillingInfo({
@@ -13,6 +14,15 @@ export function BillingInfo({
     label: string;
     data: BillingInfoData;
 } & React.ComponentProps<'div'>) {
+    const taxIdentifier = data.panGstNumber ?? data.gstNumber;
+    const taxLabel = data.panGstNumber
+        ? data.panGstNumber.length === 10
+            ? 'PAN No'
+            : data.panGstNumber.length === 15
+            ? 'GST No'
+            : 'PAN/GST No'
+        : 'GST No';
+
     return (
         <div {...props}>
             <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500">
@@ -25,9 +35,9 @@ export function BillingInfo({
                 {data.phone && (
                     <div className="text-muted-foreground">{data.phone}</div>
                 )}
-                {data.gstNumber && (
+                {taxIdentifier && (
                     <div className="whitespace-pre-line text-muted-foreground">
-                        GST No: <span className="uppercase">{data.gstNumber}</span>
+                        {taxLabel}: <span className="uppercase">{taxIdentifier}</span>
                     </div>
                 )}
                 {data.address && (

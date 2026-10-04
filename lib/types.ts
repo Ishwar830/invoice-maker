@@ -32,7 +32,7 @@ export const PURITY_OPTIONS: Record<MetalType, PurityOption[]> = {
 export type InvoiceCustomer = {
     name: string;
     phone: string;
-    gstNumber: string;
+    panGstNumber: string;
     address: string;
 };
 

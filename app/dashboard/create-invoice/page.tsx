@@ -31,7 +31,7 @@ export default async function CreateInvoicePage({
     const initialData: InvoiceFormData = {
         invoiceNumber: nextInvoiceNumber,
         date: new Date().toISOString().split('T')[0],
-        customer: { name: '', phone: '', gstNumber: '', address: '' },
+        customer: { name: '', phone: '', panGstNumber: '', address: '' },
         items: [{
             id: Math.random().toString(36).substring(2, 9),
             description: '',
