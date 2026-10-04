@@ -148,7 +148,8 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                                 Shop Profile
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                Business details printed at the top of your invoices.
+                                Business details printed at the top of your
+                                invoices.
                             </CardDescription>
                         </div>
                     </div>
@@ -157,8 +158,12 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                 <CardContent className="space-y-4">
                     {/* Shop Name */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="shop-name" className="text-xs font-medium">
-                            Shop Name <span className="text-destructive">*</span>
+                        <Label
+                            htmlFor="shop-name"
+                            className="text-xs font-medium"
+                        >
+                            Shop Name{' '}
+                            <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="shop-name"
@@ -181,7 +186,10 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                     {/* Owner Name & Phone */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="owner-name" className="text-xs font-medium">
+                            <Label
+                                htmlFor="owner-name"
+                                className="text-xs font-medium"
+                            >
                                 Owner Name
                             </Label>
                             <Input
@@ -195,7 +203,10 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="shop-phone" className="text-xs font-medium">
+                            <Label
+                                htmlFor="shop-phone"
+                                className="text-xs font-medium"
+                            >
                                 Phone Number
                             </Label>
                             <Input
@@ -212,13 +223,18 @@ export function SettingsClient({ shop }: SettingsClientProps) {
 
                     {/* GSTIN */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="gst-number" className="text-xs font-medium">
+                        <Label
+                            htmlFor="gst-number"
+                            className="text-xs font-medium"
+                        >
                             GST Number
                         </Label>
                         <Input
                             id="gst-number"
                             value={gstNumber}
-                            onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
+                            onChange={(e) =>
+                                setGstNumber(e.target.value.toUpperCase())
+                            }
                             placeholder="e.g., 24ABCDE1234F1Z5"
                             maxLength={20}
                             className="h-9 font-mono uppercase text-sm"
@@ -227,7 +243,10 @@ export function SettingsClient({ shop }: SettingsClientProps) {
 
                     {/* Address */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="shop-address" className="text-xs font-medium">
+                        <Label
+                            htmlFor="shop-address"
+                            className="text-xs font-medium"
+                        >
                             Address
                         </Label>
                         <Textarea
@@ -237,7 +256,7 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                             placeholder="e.g., Station Road, Palanpur, Gujarat - 385001"
                             rows={3}
                             maxLength={500}
-                            className="text-sm min-h-[72px]"
+                            className="text-sm min-h-18"
                         />
                     </div>
                 </CardContent>
@@ -255,7 +274,8 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                                 Bank Details
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                Payment information printed at the bottom of your invoices.
+                                Payment information printed at the bottom of
+                                your invoices.
                             </CardDescription>
                         </div>
                     </div>
@@ -265,28 +285,34 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                     {/* Bank Name & Branch */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="bank-name" className="text-xs font-medium">
+                            <Label
+                                htmlFor="bank-name"
+                                className="text-xs font-medium"
+                            >
                                 Bank Name
                             </Label>
                             <Input
                                 id="bank-name"
                                 value={bankName}
                                 onChange={(e) => setBankName(e.target.value)}
-                                placeholder="e.g., Kotak Mahindra Bank"
+                                placeholder="e.g., State Bank of India"
                                 maxLength={200}
                                 className="h-9 text-sm"
                             />
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="bank-branch" className="text-xs font-medium">
+                            <Label
+                                htmlFor="bank-branch"
+                                className="text-xs font-medium"
+                            >
                                 Branch Name
                             </Label>
                             <Input
                                 id="bank-branch"
                                 value={bankBranch}
                                 onChange={(e) => setBankBranch(e.target.value)}
-                                placeholder="e.g., Ambernath East"
+                                placeholder="e.g., Main Branch"
                                 maxLength={200}
                                 className="h-9 text-sm"
                             />
@@ -296,28 +322,38 @@ export function SettingsClient({ shop }: SettingsClientProps) {
                     {/* Account Number & IFSC Code */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="account-number" className="text-xs font-medium">
+                            <Label
+                                htmlFor="account-number"
+                                className="text-xs font-medium"
+                            >
                                 Account Number
                             </Label>
                             <Input
                                 id="account-number"
                                 value={bankAccountNumber}
-                                onChange={(e) => setBankAccountNumber(e.target.value)}
-                                placeholder="e.g., 9833865787"
+                                onChange={(e) =>
+                                    setBankAccountNumber(e.target.value)
+                                }
+                                placeholder="e.g., 123456789012"
                                 maxLength={50}
                                 className="h-9 font-mono text-sm"
                             />
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label htmlFor="ifsc-code" className="text-xs font-medium">
+                            <Label
+                                htmlFor="ifsc-code"
+                                className="text-xs font-medium"
+                            >
                                 IFSC Code
                             </Label>
                             <Input
                                 id="ifsc-code"
                                 value={bankIfsc}
-                                onChange={(e) => setBankIfsc(e.target.value.toUpperCase())}
-                                placeholder="e.g., KKBK0002040"
+                                onChange={(e) =>
+                                    setBankIfsc(e.target.value.toUpperCase())
+                                }
+                                placeholder="e.g., SBIN0001234"
                                 maxLength={50}
                                 className="h-9 font-mono uppercase text-sm"
                             />
