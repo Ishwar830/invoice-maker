@@ -8,7 +8,6 @@ import {
     getCategoryById,
     getCategories,
     getCategoriesWithStats,
-    getInventoryItems,
 } from '@/db/queries/inventory';
 import { requireSession, getSession } from '@/lib/session';
 import { InventoryTable } from '@/components/inventory/inventory-table';
@@ -50,7 +49,7 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
     const clientCategories = allCategories.map((c) => ({ id: c.id, name: c.name }));
 
     return (
-        <div className="px-6 py-10 max-w-5xl mx-auto flex flex-col gap-8">
+        <div className="px-4 py-6 md:px-6 md:py-10 max-w-5xl mx-auto flex flex-col gap-6 md:gap-8">
             {/* Back + Add */}
             <div className="flex items-center justify-between gap-4">
                 <Button variant="ghost" size="sm" asChild>

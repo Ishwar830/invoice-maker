@@ -1,4 +1,4 @@
-import { eq, count, desc, ilike, or, sum, sql, and, inArray } from 'drizzle-orm';
+import { eq, count, desc, ilike, sql, and, inArray } from 'drizzle-orm';
 import { db } from '../index';
 import { inventoryCategoriesTable, inventoryItemsTable } from '../schema';
 import {

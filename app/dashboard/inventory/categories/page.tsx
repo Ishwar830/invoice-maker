@@ -20,7 +20,7 @@ export default async function CategoriesPage() {
     }));
 
     return (
-        <div className="px-6 py-10 max-w-5xl mx-auto flex flex-col gap-8">
+        <div className="px-4 py-6 md:px-6 md:py-10 max-w-5xl mx-auto flex flex-col gap-6 md:gap-8">
             {/* Top bar */}
             <CategoriesPageClient />
 

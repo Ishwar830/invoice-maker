@@ -15,9 +15,9 @@ export const metadata = {
 
 export default function InventoryPage() {
     return (
-        <div className="px-6 py-10 max-w-5xl mx-auto flex flex-col gap-8">
+        <div className="px-4 py-6 md:px-6 md:py-10 max-w-5xl mx-auto flex flex-col gap-6 md:gap-8">
             {/* Header */}
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
                     <h1
                         className={`${playfair.className} text-2xl md:text-3xl font-semibold tracking-wide text-neutral-800 dark:text-neutral-100`}
@@ -28,7 +28,7 @@ export default function InventoryPage() {
                         Select a category to view and manage its items.
                     </p>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="self-start sm:self-auto shrink-0">
                     <Link href="/dashboard/inventory/categories">
                         <Settings2Icon className="size-4 mr-1.5" />
                         Manage Categories
