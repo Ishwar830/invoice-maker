@@ -64,7 +64,7 @@ export function PurchaseInvoicePreview() {
         <div className="bg-[#F5F3EF]">
             {/* Action bar — hidden on print */}
             <div className="print:hidden sticky top-0 z-10 border-b border-border/40 bg-white/80 backdrop-blur-sm">
-                <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
+                <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3">
                     <Button
                         variant="ghost"
                         size="sm"
@@ -72,14 +72,14 @@ export function PurchaseInvoicePreview() {
                         className="gap-2"
                     >
                         <ArrowLeftIcon className="size-4" />
-                        Back to Editor
+                        <span className="hidden sm:inline">Back to Editor</span>
                     </Button>
                     <div className="flex items-center gap-2">
-                        <Button onClick={handleSave} disabled={isSaving}>
+                        <Button onClick={handleSave} disabled={isSaving} size="sm">
                             {isSaving && (
                                 <Loader2Icon className="mr-2 size-4 animate-spin" />
                             )}
-                            {isSaving ? 'Saving...' : 'Save Invoice'}
+                            {isSaving ? 'Saving...' : 'Save'}
                         </Button>
                         <Button
                             variant="outline"
@@ -88,7 +88,7 @@ export function PurchaseInvoicePreview() {
                             className="gap-2"
                         >
                             <PrinterIcon className="size-4" />
-                            Print
+                            <span className="hidden sm:inline">Print</span>
                         </Button>
                     </div>
                 </div>

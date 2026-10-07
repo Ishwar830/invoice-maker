@@ -1,6 +1,7 @@
 export { InvoiceSheetLayout } from './invoice-sheet-layout';
 export { SalesInvoiceSheet } from './sales-invoice-sheet';
 export { PurchaseInvoiceSheet } from './purchase-invoice-sheet';
+export { MobileInvoiceView } from './mobile-invoice-view';
 export { SheetHeader } from './sheet-header';
 export { BillingInfo } from './billing-info';
 export { ItemsTable } from './items-table';
