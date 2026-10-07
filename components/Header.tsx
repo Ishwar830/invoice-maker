@@ -5,13 +5,14 @@ import { Separator } from './ui/separator';
 import { getSession } from '@/lib/session';
 import Link from 'next/link';
 import { LayoutDashboardIcon, LogOutIcon, PackageIcon, SettingsIcon } from 'lucide-react';
+import { MobileNav } from './mobile-nav';
 
 export async function Header() {
     const session = await getSession();
 
     return (
         <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-            <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+            <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
                 {/* Logo */}
                 <Link href={session ? '/dashboard' : '/'} className="flex items-center gap-2">
                     <span
@@ -21,8 +22,8 @@ export async function Header() {
                     </span>
                 </Link>
 
-                {/* Right side */}
-                <div className="flex items-center gap-1">
+                {/* Desktop navigation — hidden on mobile */}
+                <div className="hidden items-center gap-1 md:flex">
                     {session && (
                         <>
                             <Button variant="ghost" size="sm" asChild>
@@ -68,6 +69,14 @@ export async function Header() {
                         </>
                     )}
                 </div>
+
+                {/* Mobile navigation — hamburger + slide-out drawer */}
+                {session && (
+                    <MobileNav
+                        shopName={session.shopName}
+                        username={session.username}
+                    />
+                )}
             </div>
         </header>
     );
