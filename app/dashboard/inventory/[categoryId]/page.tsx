@@ -12,6 +12,7 @@ import {
 import { requireSession, getSession } from '@/lib/session';
 import { InventoryTable } from '@/components/inventory/inventory-table';
 import { InventoryTableSkeleton } from '@/components/inventory/inventory-table-skeleton';
+import InventoryPagination from '@/components/inventory/inventory-pagination';
 import { CategoryDetailClient } from './category-detail-client';
 
 type Props = {
@@ -103,6 +104,11 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
             {/* Items table */}
             <Suspense fallback={<InventoryTableSkeleton />}>
                 <InventoryTable categoryId={categoryId} page={page} />
+            </Suspense>
+
+            {/* Pagination */}
+            <Suspense fallback={null}>
+                <InventoryPagination categoryId={categoryId} currentPage={page} />
             </Suspense>
         </div>
     );
