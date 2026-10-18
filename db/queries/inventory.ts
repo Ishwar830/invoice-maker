@@ -139,7 +139,11 @@ export const deleteCategory = async (id: string, shopId: string) => {
 
 // ─── Inventory Item Queries ───────────────────────────────────────────────────
 
-export const getInventoryItemsCount = async (shopId: string, categoryId?: string) => {
+export const getInventoryItemsCount = async (shopId: string, categoryId?: string, search?: string) => {
+    const searchCondition = search?.trim()
+        ? ilike(inventoryItemsTable.itemCode, `%${search.trim()}%`)
+        : undefined;
+
     const result = await db
         .select({ total: count() })
         .from(inventoryItemsTable)
@@ -147,25 +151,31 @@ export const getInventoryItemsCount = async (shopId: string, categoryId?: string
             and(
                 eq(inventoryItemsTable.shopId, shopId),
                 eq(inventoryItemsTable.status, 'available'),
-                categoryId ? eq(inventoryItemsTable.categoryId, categoryId) : undefined
+                categoryId ? eq(inventoryItemsTable.categoryId, categoryId) : undefined,
+                searchCondition
             )
         );
     return result[0]?.total ?? 0;
 };
 
-export const getInventoryItemsPageCount = async (shopId: string, categoryId?: string) => {
-    const total = await getInventoryItemsCount(shopId, categoryId);
+export const getInventoryItemsPageCount = async (shopId: string, categoryId?: string, search?: string) => {
+    const total = await getInventoryItemsCount(shopId, categoryId, search);
     return Math.ceil(total / ITEMS_PER_PAGE);
 };
 
-export const getInventoryItems = async (shopId: string, categoryId?: string, page = 1) => {
+export const getInventoryItems = async (shopId: string, categoryId?: string, page = 1, search?: string) => {
     const offset = (page - 1) * ITEMS_PER_PAGE;
+    const searchCondition = search?.trim()
+        ? ilike(inventoryItemsTable.itemCode, `%${search.trim()}%`)
+        : undefined;
+
     return db.query.inventoryItemsTable.findMany({
         where: (t, { eq, and }) =>
             and(
                 eq(t.shopId, shopId),
                 eq(t.status, 'available'),
-                categoryId ? eq(t.categoryId, categoryId) : undefined
+                categoryId ? eq(t.categoryId, categoryId) : undefined,
+                searchCondition
             ),
         orderBy: (t, { desc }) => [desc(t.createdAt)],
         limit: ITEMS_PER_PAGE,

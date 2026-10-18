@@ -7,9 +7,10 @@ import { PackageIcon } from 'lucide-react';
 interface InventoryTableProps {
     categoryId?: string;
     page?: number;
+    search?: string;
 }
 
-export async function InventoryTable({ categoryId, page = 1 }: InventoryTableProps) {
+export async function InventoryTable({ categoryId, page = 1, search }: InventoryTableProps) {
     let items: Awaited<ReturnType<typeof getInventoryItems>> = [];
     let categories: Awaited<ReturnType<typeof getCategories>> = [];
     let errorMessage: string | null = null;
@@ -17,7 +18,7 @@ export async function InventoryTable({ categoryId, page = 1 }: InventoryTablePro
     try {
         const { shopId } = await requireSession();
         [items, categories] = await Promise.all([
-            getInventoryItems(shopId, categoryId, page),
+            getInventoryItems(shopId, categoryId, page, search),
             getCategories(shopId),
         ]);
     } catch {
@@ -34,7 +35,7 @@ export async function InventoryTable({ categoryId, page = 1 }: InventoryTablePro
         );
     }
 
-    if (items.length === 0 && !categoryId && page === 1) {
+    if (items.length === 0 && !categoryId && !search && page === 1) {
         return (
             <Card className="border border-dashed border-neutral-200/60 dark:border-neutral-800 bg-white dark:bg-neutral-900/50">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -62,5 +63,5 @@ export async function InventoryTable({ categoryId, page = 1 }: InventoryTablePro
 
     const clientCategories = categories.map((c) => ({ id: c.id, name: c.name }));
 
-    return <InventoryTableClient items={clientItems} categories={clientCategories} />;
+    return <InventoryTableClient items={clientItems} categories={clientCategories} search={search} />;
 }

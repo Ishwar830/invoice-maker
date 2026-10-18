@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
     Table,
     TableBody,
@@ -11,7 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PencilIcon, Trash2Icon } from 'lucide-react';
+import { PencilIcon, SearchXIcon, Trash2Icon } from 'lucide-react';
 import { AddEditItemDialog } from './add-edit-item-dialog';
 import { DeleteItemDialog } from './delete-item-dialog';
 
@@ -35,9 +37,11 @@ interface Category {
 interface InventoryTableClientProps {
     items: InventoryItem[];
     categories: Category[];
+    search?: string;
 }
 
-export function InventoryTableClient({ items, categories }: InventoryTableClientProps) {
+export function InventoryTableClient({ items, categories, search }: InventoryTableClientProps) {
+    const pathname = usePathname();
     const [editTarget, setEditTarget] = useState<InventoryItem | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{
         id: string;
@@ -77,9 +81,27 @@ export function InventoryTableClient({ items, categories }: InventoryTableClient
                                 <TableRow>
                                     <TableCell
                                         colSpan={6}
-                                        className="pl-6 py-10 text-sm text-neutral-400 text-center"
+                                        className="pl-6 py-10 text-center"
                                     >
-                                        No items found. Add your first item!
+                                        {search ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <SearchXIcon className="size-5 text-neutral-300 dark:text-neutral-600" />
+                                                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                                    No items matching &ldquo;
+                                                    <span className="font-mono font-medium text-neutral-700 dark:text-neutral-200">
+                                                        {search}
+                                                    </span>
+                                                    &rdquo;
+                                                </p>
+                                                <Button variant="ghost" size="sm" asChild>
+                                                    <Link href={pathname}>Clear search</Link>
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-neutral-400">
+                                                No items found. Add your first item!
+                                            </span>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -149,9 +171,25 @@ export function InventoryTableClient({ items, categories }: InventoryTableClient
                 {/* Mobile Cards */}
                 <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 md:hidden">
                     {items.length === 0 && (
-                        <p className="py-8 px-5 text-sm text-neutral-400 text-center">
-                            No items found.
-                        </p>
+                        <div className="py-8 px-5 text-center">
+                            {search ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <SearchXIcon className="size-5 text-neutral-300 dark:text-neutral-600" />
+                                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                        No items matching &ldquo;
+                                        <span className="font-mono font-medium text-neutral-700 dark:text-neutral-200">
+                                            {search}
+                                        </span>
+                                        &rdquo;
+                                    </p>
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <Link href={pathname}>Clear search</Link>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-neutral-400">No items found.</p>
+                            )}
+                        </div>
                     )}
                     {items.map((item) => (
                         <div

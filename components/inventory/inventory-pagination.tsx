@@ -13,20 +13,23 @@ import { requireSession } from '@/lib/session';
 interface InventoryPaginationProps {
     categoryId: string;
     currentPage: number;
+    search?: string;
 }
 
 export default async function InventoryPagination({
     categoryId,
     currentPage,
+    search,
 }: InventoryPaginationProps) {
     const { shopId } = await requireSession();
-    const totalPages = await getInventoryItemsPageCount(shopId, categoryId);
+    const totalPages = await getInventoryItemsPageCount(shopId, categoryId, search);
 
     if (totalPages <= 1) return null;
 
     const createPageUrl = (page: number) => {
         const params = new URLSearchParams();
         if (page > 1) params.set('page', String(page));
+        if (search) params.set('query', search);
         const qs = params.toString();
         return qs ? `?${qs}` : '?';
     };

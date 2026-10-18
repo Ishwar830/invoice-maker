@@ -13,11 +13,12 @@ import { requireSession, getSession } from '@/lib/session';
 import { InventoryTable } from '@/components/inventory/inventory-table';
 import { InventoryTableSkeleton } from '@/components/inventory/inventory-table-skeleton';
 import InventoryPagination from '@/components/inventory/inventory-pagination';
+import Search from '@/components/ui/search';
 import { CategoryDetailClient } from './category-detail-client';
 
 type Props = {
     params: Promise<{ categoryId: string }>;
-    searchParams: Promise<{ page?: string }>;
+    searchParams: Promise<{ page?: string; query?: string }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -33,8 +34,9 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function CategoryDetailPage({ params, searchParams }: Props) {
     const { categoryId } = await params;
-    const { page: pageStr } = await searchParams;
+    const { page: pageStr, query } = await searchParams;
     const page = Number(pageStr ?? '1');
+    const search = typeof query === 'string' ? query : undefined;
     const { shopId } = await requireSession();
 
     // Fetch in parallel — notFound handled after
@@ -101,14 +103,17 @@ export default async function CategoryDetailPage({ params, searchParams }: Props
                 )}
             </div>
 
+            {/* Search */}
+            <Search placeholder="Search by item code…" />
+
             {/* Items table */}
             <Suspense fallback={<InventoryTableSkeleton />}>
-                <InventoryTable categoryId={categoryId} page={page} />
+                <InventoryTable categoryId={categoryId} page={page} search={search} />
             </Suspense>
 
             {/* Pagination */}
             <Suspense fallback={null}>
-                <InventoryPagination categoryId={categoryId} currentPage={page} />
+                <InventoryPagination categoryId={categoryId} currentPage={page} search={search} />
             </Suspense>
         </div>
     );
