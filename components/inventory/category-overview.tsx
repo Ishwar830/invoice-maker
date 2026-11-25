@@ -10,9 +10,49 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { getCategoriesWithStats } from '@/db/queries/inventory';
 import { requireSession } from '@/lib/session';
-import { PackageIcon, ChevronRightIcon } from 'lucide-react';
+import { PackageIcon, ChevronRightIcon, ScaleIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+
+export async function InventoryWeightSummary() {
+    const { shopId } = await requireSession();
+    const categories = await getCategoriesWithStats(shopId);
+
+    const { totalGrossWeight, totalNetWeight } = categories.reduce(
+        (acc, cat) => ({
+            totalGrossWeight: acc.totalGrossWeight + cat.totalGrossWeight,
+            totalNetWeight: acc.totalNetWeight + cat.totalNetWeight,
+        }),
+        { totalGrossWeight: 0, totalNetWeight: 0 }
+    );
+
+    return (
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+            <span className="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
+                <ScaleIcon className="size-3.5 text-amber-500 shrink-0" />
+                <span>Total:</span>
+                <span className="font-mono">
+                    <strong className="text-neutral-700 dark:text-neutral-200">
+                        {totalGrossWeight.toFixed(3)}
+                    </strong>{' '}
+                    g gross /{' '}
+                    <strong className="text-neutral-700 dark:text-neutral-200">
+                        {totalNetWeight.toFixed(3)}
+                    </strong>{' '}
+                    g net
+                </span>
+            </span>
+        </div>
+    );
+}
+
+export function InventoryWeightSummarySkeleton() {
+    return (
+        <div className="mt-3 flex items-center">
+            <Skeleton className="h-5 w-60" />
+        </div>
+    );
+}
 
 export async function CategoryOverview() {
     const { shopId } = await requireSession();

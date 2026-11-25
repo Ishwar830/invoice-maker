@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { eq, count, desc, ilike, sql, and, inArray } from 'drizzle-orm';
 import { db } from '../index';
 import { inventoryCategoriesTable, inventoryItemsTable } from '../schema';
@@ -47,7 +48,7 @@ export const getCategories = async (shopId: string) => {
     });
 };
 
-export const getCategoriesWithStats = async (shopId: string) => {
+export const getCategoriesWithStats = cache(async (shopId: string) => {
     const rows = await db
         .select({
             id: inventoryCategoriesTable.id,
@@ -75,7 +76,7 @@ export const getCategoriesWithStats = async (shopId: string) => {
         totalGrossWeight: Number(r.totalGrossWeight),
         totalNetWeight: Number(r.totalNetWeight),
     }));
-};
+});
 
 export const getCategoryById = async (id: string, shopId: string) => {
     return db.query.inventoryCategoriesTable.findFirst({

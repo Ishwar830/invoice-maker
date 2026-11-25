@@ -6,6 +6,8 @@ import { playfair } from '@/lib/fonts';
 import {
     CategoryOverview,
     CategoryOverviewSkeleton,
+    InventoryWeightSummary,
+    InventoryWeightSummarySkeleton,
 } from '@/components/inventory/category-overview';
 
 export const metadata = {
@@ -27,6 +29,9 @@ export default function InventoryPage() {
                     <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                         Select a category to view and manage its items.
                     </p>
+                    <Suspense fallback={<InventoryWeightSummarySkeleton />}>
+                        <InventoryWeightSummary />
+                    </Suspense>
                 </div>
                 <Button variant="outline" size="sm" asChild className="self-start sm:self-auto shrink-0">
                     <Link href="/dashboard/inventory/categories">
